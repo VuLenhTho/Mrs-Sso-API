@@ -3,6 +3,8 @@ package com.vulenhtho.mrssso.service.impl;
 import com.vulenhtho.mrssso.config.Constant;
 import com.vulenhtho.mrssso.dto.ProductDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
+import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
+import com.vulenhtho.mrssso.dto.response.ProductWebWindowViewResponseDTO;
 import com.vulenhtho.mrssso.entity.Product;
 import com.vulenhtho.mrssso.entity.ProductColorSize;
 import com.vulenhtho.mrssso.mapper.ProductMapper;
@@ -93,6 +95,32 @@ public class ProductServiceImpl implements ProductService {
     public ProductDTO findById(Long id) {
         Optional<Product> product = productRepository.findById(id);
         return product.map(value -> productMapper.toDTO(value)).orElse(null);
+    }
+
+    @Override
+    public ProductWebResponseDTO findForWebById(Long id) {
+        Optional<Product> product = productRepository.findById(id);
+        return product.map(value -> productMapper.toWebResponseDTO(value)).orElse(null);
+    }
+
+    @Override
+    public Page<ProductWebWindowViewResponseDTO> getWindowViewByFilterForWeb(ProductFilterRequestDTO filterRequest) {
+        return productRepository.findAll(ProductSpecification.filterProduct(filterRequest)
+                , PageRequest.of(
+                        filterRequest.getPage()
+                        , filterRequest.getSize()
+                        , sort(filterRequest.getSort())
+                )).map(productMapper::toWebWindowViewResponseDTO);
+    }
+
+    @Override
+    public Page<ProductWebResponseDTO> getAllWithFilterForWeb(ProductFilterRequestDTO filterRequest) {
+        return productRepository.findAll(ProductSpecification.filterProduct(filterRequest)
+                , PageRequest.of(
+                        filterRequest.getPage()
+                        , filterRequest.getSize()
+                        , sort(filterRequest.getSort())
+                )).map(productMapper::toWebResponseDTO);
     }
 
     @Override

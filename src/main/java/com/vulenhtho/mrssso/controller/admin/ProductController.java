@@ -62,9 +62,10 @@ public class ProductController {
 
     @GetMapping("/products")
     public ResponseEntity<Page<ProductDTO>> getAllWithFilter(
-            @RequestParam Integer page, @RequestParam Integer size, @RequestParam(required = false) String sort
+            @RequestParam(required = false, defaultValue = "0") Integer page
+            , @RequestParam(required = false, defaultValue = "5") Integer size, @RequestParam(required = false) String sort
             , @RequestParam(required = false) String search, @RequestParam(required = false) Long categoryId
-            , @RequestParam(required = false) Boolean trend, @RequestParam(required = false) String  discountId
+            , @RequestParam(required = false) Boolean trend, @RequestParam(required = false) String discountId
             , @RequestParam(required = false) ProductStatus status, @RequestParam(required = false) Boolean hot){
 
         ProductFilterRequestDTO filterRequestDTO = new ProductFilterRequestDTO(sort, status, search, categoryId, hot, trend, discountId, page, size);

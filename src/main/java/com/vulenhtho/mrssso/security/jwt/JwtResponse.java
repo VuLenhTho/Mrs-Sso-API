@@ -1,14 +1,20 @@
 package com.vulenhtho.mrssso.security.jwt;
 
+import com.vulenhtho.mrssso.dto.UserDTO;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter@Setter
+@Getter
+@Setter
 public class JwtResponse {
     private String token;
+
     private String type = "Bearer";
 
-    public JwtResponse(String accessToken) {
+    private UserDTO userDTO;
+
+    public JwtResponse(String accessToken, UserDTO userDTO) {
+        this.userDTO = userDTO;
         this.token = accessToken;
     }
 

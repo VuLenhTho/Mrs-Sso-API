@@ -3,6 +3,7 @@ package com.vulenhtho.mrssso.controller;
 import com.vulenhtho.mrssso.dto.RoleDTO;
 import com.vulenhtho.mrssso.dto.UserDTO;
 import com.vulenhtho.mrssso.entity.User;
+import com.vulenhtho.mrssso.mapper.UserMapper;
 import com.vulenhtho.mrssso.repository.UserRepository;
 import com.vulenhtho.mrssso.security.jwt.JwtProvider;
 import com.vulenhtho.mrssso.security.jwt.JwtResponse;
@@ -25,18 +26,25 @@ import java.util.Optional;
 @RequestMapping("/api/auth")
 public class AuthController {
     private AuthenticationManager authenticationManager;
+
     private PasswordEncoder encoder;
+
     private JwtProvider jwtProvider;
+
     private UserRepository userRepository;
+
     private UserService userService;
 
+    private UserMapper userMapper;
+
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager, PasswordEncoder encoder, JwtProvider jwtProvider, UserRepository userRepository, UserService userService) {
+    public AuthController(AuthenticationManager authenticationManager, PasswordEncoder encoder, JwtProvider jwtProvider, UserRepository userRepository, UserService userService, UserMapper userMapper) {
         this.authenticationManager = authenticationManager;
         this.encoder = encoder;
         this.jwtProvider = jwtProvider;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.userMapper = userMapper;
     }
 
     @GetMapping("/create")
@@ -79,7 +87,7 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             String jwt = jwtProvider.generateJwtToken(authentication);
-            return ResponseEntity.ok(new JwtResponse(jwt));
+            return ResponseEntity.ok(new JwtResponse(jwt, userMapper.toDTO(user.get())));
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect password");

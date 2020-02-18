@@ -77,8 +77,7 @@ public class User extends AbstractAuditing {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    @JsonIgnore
     @OneToMany(mappedBy = "user")
-    private Set<Receipt> carts = new HashSet<>();
+    private Set<Receipt> receipts = new HashSet<>();
 
 }

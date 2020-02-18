@@ -47,9 +47,6 @@ public class Receipt extends AbstractAuditing{
     private String security;
 
     @Column
-    private String discountCode;
-
-    @Column
     private Long coinsUsed;
 
     @Column
@@ -62,4 +59,10 @@ public class Receipt extends AbstractAuditing{
 
     @OneToMany(mappedBy = "receipt")
     private Set<Item> items = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(name = "receipt_discount",
+            joinColumns = @JoinColumn(name = "receipt_id"),
+            inverseJoinColumns = @JoinColumn(name = "discount_id"))
+    private Set<Discount> discounts = new HashSet<>();
 }

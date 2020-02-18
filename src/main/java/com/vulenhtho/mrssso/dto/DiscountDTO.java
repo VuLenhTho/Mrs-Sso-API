@@ -21,4 +21,5 @@ public class DiscountDTO {
 
     private Instant endDate;
 
+    private Boolean isForProduct;
 }

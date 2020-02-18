@@ -42,8 +42,18 @@ public class Discount implements Serializable {
     @Column
     private Instant endDate;
 
+    @Column
+    private Boolean isForProduct;
+
     @ManyToMany(mappedBy = "discounts")
     @JsonIgnore
     private Set<Product> products = new HashSet<>();
 
+    @ManyToMany(mappedBy = "discounts")
+    @JsonIgnore
+    private Set<Receipt> receipts = new HashSet<>();
+
+    @ManyToMany(mappedBy = "discounts")
+    @JsonIgnore
+    private Set<Item> items = new HashSet<>();
 }

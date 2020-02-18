@@ -3,6 +3,8 @@ package com.vulenhtho.mrssso.service.impl;
 import com.vulenhtho.mrssso.config.Constant;
 import com.vulenhtho.mrssso.dto.UserDTO;
 import com.vulenhtho.mrssso.dto.request.UserFilterRequestDTO;
+import com.vulenhtho.mrssso.dto.response.UserInfoWebResponseDTO;
+import com.vulenhtho.mrssso.entity.Receipt;
 import com.vulenhtho.mrssso.entity.Role;
 import com.vulenhtho.mrssso.entity.User;
 import com.vulenhtho.mrssso.mapper.UserMapper;
@@ -24,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -62,7 +65,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createdUser(UserDTO userDTO) {
-        try{
+        try {
             User user = userMapper.toEntity(userDTO);
             user.setActivated(true);
             user.setLocked(false);
@@ -75,7 +78,7 @@ public class UserServiceImpl implements UserService {
                 user.setRoles(roles);
             }
             return userRepository.save(user);
-        }catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }
@@ -106,12 +109,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User requestPasswordReset(String mail) {
-        try{
+        try {
             User userExits = userRepository.findByEmail(mail).filter(User::getActivated).get();
             userExits.setResetKey(RandomUtil.generateResetKey());
             userExits.setResetDate(Instant.now());
             return userRepository.save(userExits);
-        }catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
 
@@ -125,7 +128,7 @@ public class UserServiceImpl implements UserService {
             user.setResetKey(null);
             user.setResetDate(null);
             return userRepository.save(user);
-        }catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }
@@ -162,12 +165,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean update(UserDTO userDTO) {
         Optional<User> userExits = userRepository.findByUserName(userDTO.getUserName());
-        if (!userExits.isPresent()){
+        if (!userExits.isPresent()) {
             return false;
         }
         User newUser = userMapper.toEntity(userDTO);
         BeanUtils.refine(newUser, userExits.get(), BeanUtils::copyNonNull);
-        if (newUser.getPassword() != null){
+        if (newUser.getPassword() != null) {
             userExits.get().setPassword(passwordEncoder.encode(newUser.getPassword()));
         }
         userRepository.save(userExits.get());
@@ -179,7 +182,7 @@ public class UserServiceImpl implements UserService {
         try {
             userRepository.deleteById(id);
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
@@ -187,6 +190,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean delete(List<Long> ids) {
         return ids.stream().allMatch(this::delete);
+    }
+
+    @Override
+    public UserInfoWebResponseDTO getUserLoginInfo() {
+        User user = userRepository.findOneWithAuthoritiesByUserName(SecurityUtils.getCurrentUserLogin().get());
+        if (user == null) {
+            return null;
+        }
+        UserInfoWebResponseDTO userInfoWebResponseDTO = new UserInfoWebResponseDTO();
+        BeanUtils.refine(user, userInfoWebResponseDTO, BeanUtils::copyNonNull);
+        List<Long> receiptIds = user.getReceipts().stream().map(Receipt::getId).collect(Collectors.toList());
+        userInfoWebResponseDTO.setReceiptIds(receiptIds);
+
+        return userInfoWebResponseDTO;
     }
 
 

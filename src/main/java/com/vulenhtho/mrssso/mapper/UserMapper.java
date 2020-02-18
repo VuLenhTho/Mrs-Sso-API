@@ -49,4 +49,5 @@ public class UserMapper {
     public List<User> toEntity(List<UserDTO> userDTOs){
         return userDTOs.stream().map(this::toEntity).collect(Collectors.toList());
     }
+
 }

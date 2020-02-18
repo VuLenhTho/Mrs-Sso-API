@@ -2,6 +2,7 @@ package com.vulenhtho.mrssso.service;
 
 import com.vulenhtho.mrssso.dto.UserDTO;
 import com.vulenhtho.mrssso.dto.request.UserFilterRequestDTO;
+import com.vulenhtho.mrssso.dto.response.UserInfoWebResponseDTO;
 import com.vulenhtho.mrssso.entity.User;
 import org.springframework.data.domain.Page;
 
@@ -29,4 +30,6 @@ public interface UserService {
     boolean delete(Long id);
 
     boolean delete(List<Long> ids);
+
+    UserInfoWebResponseDTO getUserLoginInfo();
 }
