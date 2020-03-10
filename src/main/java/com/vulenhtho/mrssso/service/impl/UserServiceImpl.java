@@ -22,10 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,22 +62,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createdUser(UserDTO userDTO) {
-        try {
-            User user = userMapper.toEntity(userDTO);
-            user.setActivated(true);
-            user.setLocked(false);
-            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-            if (userDTO.getRoles() != null) {
-                Set<Role> roles = new HashSet<>();
-                userDTO.getRoles().forEach(roleName -> {
-                    roleRepository.findByName(roleName.getName()).ifPresent(roles::add);
-                });
-                user.setRoles(roles);
-            }
-            return userRepository.save(user);
-        } catch (Exception e) {
-            return null;
-        }
+        User user = userMapper.toEntity(userDTO);
+        user.setActivated(userDTO.getActivated());
+        user.setLocked(userDTO.getLocked());
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        return userRepository.save(user);
     }
 
     @Override
@@ -204,6 +190,38 @@ public class UserServiceImpl implements UserService {
         userInfoWebResponseDTO.setReceiptIds(receiptIds);
 
         return userInfoWebResponseDTO;
+    }
+
+    @Override
+    public String checkDuplicatesUserInfoInCreate(String userName, String email, String phone) {
+        Optional<User> userExits = userRepository.findByUserName(userName);
+        if (userExits.isPresent()) {
+            return Constant.USER_ERROR_MESSAGE.USERNAME_EXISTED;
+        }
+        userExits = userRepository.findByEmail(email);
+        if (userExits.isPresent()) {
+            return Constant.USER_ERROR_MESSAGE.EMAIL_EXISTED;
+        }
+        userExits = userRepository.findByPhone(phone);
+        if (userExits.isPresent()) {
+            return Constant.USER_ERROR_MESSAGE.PHONE_EXISTED;
+        }
+
+        return null;
+    }
+
+    @Override
+    public String checkDuplicatesUserInfoInUpdate(String userName, String email, String phone) {
+        Optional<User> userExits = userRepository.findByEmail(email);
+        if (userExits.isPresent() && !Objects.equals(userExits.get().getUserName(), userName)) {
+            return Constant.USER_ERROR_MESSAGE.EMAIL_EXISTED;
+        }
+        userExits = userRepository.findByPhone(phone);
+        if (userExits.isPresent() && !Objects.equals(userExits.get().getPhone(), phone)) {
+            return Constant.USER_ERROR_MESSAGE.PHONE_EXISTED;
+        }
+
+        return null;
     }
 
 

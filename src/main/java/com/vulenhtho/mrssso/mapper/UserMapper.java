@@ -28,6 +28,7 @@ public class UserMapper {
             userDTO.setRoles(roleMapper.toDTO(user.getRoles()));
         }else userDTO.setRoles(null);
 
+        userDTO.setPassword(null);
         return userDTO;
     }
 

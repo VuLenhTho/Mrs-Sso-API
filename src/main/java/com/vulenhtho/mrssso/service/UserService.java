@@ -32,4 +32,8 @@ public interface UserService {
     boolean delete(List<Long> ids);
 
     UserInfoWebResponseDTO getUserLoginInfo();
+
+    String checkDuplicatesUserInfoInCreate(String userName, String email, String phone);
+
+    String checkDuplicatesUserInfoInUpdate(String userName, String email, String phone);
 }
