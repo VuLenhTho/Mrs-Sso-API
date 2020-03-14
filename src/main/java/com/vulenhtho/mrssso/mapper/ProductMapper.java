@@ -6,10 +6,10 @@ import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
 import com.vulenhtho.mrssso.dto.response.ProductWebWindowViewResponseDTO;
 import com.vulenhtho.mrssso.entity.Product;
 import com.vulenhtho.mrssso.entity.ProductColorSize;
-import com.vulenhtho.mrssso.repository.CategoryRepository;
 import com.vulenhtho.mrssso.repository.ColorRepository;
 import com.vulenhtho.mrssso.repository.DiscountRepository;
 import com.vulenhtho.mrssso.repository.SizeRepository;
+import com.vulenhtho.mrssso.repository.SubCategoryRepository;
 import com.vulenhtho.mrssso.util.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,7 +27,7 @@ public class ProductMapper {
 
     private SizeRepository sizeRepository;
 
-    private CategoryRepository categoryRepository;
+    private SubCategoryRepository subCategoryRepository;
 
     private ProductColorSizeMapper productColorSizeMapper;
 
@@ -37,24 +37,24 @@ public class ProductMapper {
 
     private DiscountMapper discountMapper;
 
-    private CategoryMapper categoryMapper;
+    private SubCategoryMapper subCategoryMapper;
 
     @Autowired
-    public ProductMapper(ColorRepository colorRepository, DiscountRepository discountRepository, SizeRepository sizeRepository, CategoryRepository categoryRepository, ProductColorSizeMapper productColorSizeMapper, ColorMapper colorMapper, SizeMapper sizeMapper, DiscountMapper discountMapper, CategoryMapper categoryMapper) {
+    public ProductMapper(ColorRepository colorRepository, DiscountRepository discountRepository, SizeRepository sizeRepository, SubCategoryRepository subCategoryRepository, ProductColorSizeMapper productColorSizeMapper, ColorMapper colorMapper, SizeMapper sizeMapper, DiscountMapper discountMapper, SubCategoryMapper subCategoryMapper) {
         this.colorRepository = colorRepository;
         this.discountRepository = discountRepository;
         this.sizeRepository = sizeRepository;
-        this.categoryRepository = categoryRepository;
+        this.subCategoryRepository = subCategoryRepository;
         this.productColorSizeMapper = productColorSizeMapper;
         this.colorMapper = colorMapper;
         this.sizeMapper = sizeMapper;
         this.discountMapper = discountMapper;
-        this.categoryMapper = categoryMapper;
+        this.subCategoryMapper = subCategoryMapper;
     }
 
     public Product toEntity(ProductDTO productDTO, Product product) {
         BeanUtils.refine(productDTO, product, BeanUtils::copyNonNull);
-        product.setCategory(categoryRepository.getOne(productDTO.getCategoryDTO().getId()));
+        product.setSubCategory(subCategoryRepository.getOne(productDTO.getSubCategoryDTO().getId()));
 
         if (!CollectionUtils.isEmpty(productDTO.getColorDTOS())) {
             product.setColors(new HashSet<>());
@@ -91,10 +91,11 @@ public class ProductMapper {
     }
 
     public ProductDTO toDTO(Product product) {
+        if (product == null) return null;
         ProductDTO productDTO = new ProductDTO();
         BeanUtils.refine(product, productDTO, BeanUtils::copyNonNull);
 
-        productDTO.setCategoryDTO(categoryMapper.toDTO(product.getCategory()));
+        productDTO.setSubCategoryDTO(subCategoryMapper.toDTO(product.getSubCategory()));
 
         if (!CollectionUtils.isEmpty(product.getProductColorSizes())) {
             productDTO.setProductColorSizeDTOS(productColorSizeMapper.toDTO(product.getProductColorSizes()));
@@ -113,6 +114,7 @@ public class ProductMapper {
     }
 
     public ProductWebResponseDTO toWebResponseDTO(Product product) {
+        if (product == null) return null;
         ProductWebResponseDTO productWebResponseDTO = new ProductWebResponseDTO();
         BeanUtils.refine(toDTO(product), productWebResponseDTO, BeanUtils::copyNonNull);
 
@@ -123,6 +125,7 @@ public class ProductMapper {
     }
 
     public ProductWebWindowViewResponseDTO toWebWindowViewResponseDTO(Product product) {
+        if (product == null) return null;
         ProductWebWindowViewResponseDTO responseDTO = new ProductWebWindowViewResponseDTO();
         Set<DiscountDTO> discountDTOS = discountMapper.toDTO(product.getDiscounts());
         BeanUtils.refine(product, responseDTO, BeanUtils::copyNonNull);

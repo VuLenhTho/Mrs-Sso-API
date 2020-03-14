@@ -29,7 +29,7 @@ public class ProductWebResponseDTO {
 
     private Boolean trend;
 
-    private CategoryDTO categoryDTO;
+    private SubCategoryDTO subCategoryDTO;
 
     private Set<ProductColorSizeDTO> productColorSizeDTOS = new HashSet<>();
 

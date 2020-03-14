@@ -22,6 +22,7 @@ public class UserMapper {
 
 
     public UserDTO toDTO(User user){
+         if (user == null) return null;
         UserDTO userDTO = new UserDTO();
         BeanUtils.refine(user, userDTO, BeanUtils::copyNonNull);
         if (user.getRoles() != null && !user.getRoles().isEmpty()){
@@ -33,10 +34,12 @@ public class UserMapper {
     }
 
     public List<UserDTO> toDTO(List<User> users){
+        if (users == null) return null;
         return users.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public User toEntity(UserDTO userDTO){
+        if (userDTO == null) return null;
         User user = new User();
         BeanUtils.refine(userDTO, user, BeanUtils::copyNonNull);
 
@@ -48,6 +51,7 @@ public class UserMapper {
     }
 
     public List<User> toEntity(List<UserDTO> userDTOs){
+        if (userDTOs == null) return null;
         return userDTOs.stream().map(this::toEntity).collect(Collectors.toList());
     }
 

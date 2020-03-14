@@ -19,7 +19,7 @@ public class ProductSpecification {
             return Specification
                     .where(withStatus(filter.getStatus()))
                     .and(withTrend(filter.getTrend()))
-                    .and(withCategory(filter.getCategoryId()))
+                    .and(withCategory(filter.getSubCategoryId()))
                     .and(withHot(filter.getHot()))
                     .and(withDiscount(filter.getDiscountId()))
                     .and(Specification.where(withCreatedBy(filter.getSearch()))
@@ -45,7 +45,7 @@ public class ProductSpecification {
             return null;
 
         return (root, criteriaQuery, criteriaBuilder)
-                -> criteriaBuilder.equal(root.get("category").get("id"), id);
+                -> criteriaBuilder.equal(root.get("subCategory").get("id"), id);
     }
 
     public static Specification<Product> withDiscount(String  ids) {

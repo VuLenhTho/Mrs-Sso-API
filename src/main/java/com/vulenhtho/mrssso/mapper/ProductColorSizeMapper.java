@@ -12,12 +12,14 @@ import java.util.stream.Collectors;
 public class ProductColorSizeMapper {
 
     public ProductColorSizeDTO toDTO(ProductColorSize productColorSize){
+        if (productColorSize == null) return null;
         ProductColorSizeDTO productColorSizeDTO = new ProductColorSizeDTO();
         BeanUtils.refine(productColorSize, productColorSizeDTO, BeanUtils::copyNonNull);
         return productColorSizeDTO;
     }
 
     public Set<ProductColorSizeDTO> toDTO(Set<ProductColorSize> productColorSizes){
+        if (productColorSizes == null) return null;
         return productColorSizes.stream().map(this::toDTO).collect(Collectors.toSet());
     }
 }

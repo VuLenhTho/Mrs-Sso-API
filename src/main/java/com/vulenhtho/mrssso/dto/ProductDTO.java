@@ -39,7 +39,7 @@ public class ProductDTO {
 
     private Instant lastModifiedDate;
 
-    private CategoryDTO categoryDTO;
+    private SubCategoryDTO subCategoryDTO;
 
     private Set<ProductColorSizeDTO> productColorSizeDTOS = new HashSet<>();
 

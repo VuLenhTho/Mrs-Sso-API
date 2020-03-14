@@ -4,6 +4,7 @@ import com.vulenhtho.mrssso.dto.ProductDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
 import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
 import com.vulenhtho.mrssso.dto.response.ProductWebWindowViewResponseDTO;
+import com.vulenhtho.mrssso.dto.response.WebHomeResponse;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -26,4 +27,6 @@ public interface ProductService {
     boolean delete(Long id);
 
     boolean delete(List<Long> ids);
+
+    WebHomeResponse getDataForWebHomePage();
 }

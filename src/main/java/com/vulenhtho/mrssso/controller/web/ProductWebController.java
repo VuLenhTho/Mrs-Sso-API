@@ -4,6 +4,7 @@ package com.vulenhtho.mrssso.controller.web;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
 import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
 import com.vulenhtho.mrssso.dto.response.ProductWebWindowViewResponseDTO;
+import com.vulenhtho.mrssso.dto.response.WebHomeResponse;
 import com.vulenhtho.mrssso.repository.ProductRepository;
 import com.vulenhtho.mrssso.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,5 +55,11 @@ public class ProductWebController {
         ProductFilterRequestDTO filterRequestDTO = new ProductFilterRequestDTO(sort, null, search, categoryId, hot, trend, null, page, size);
         Page<ProductWebWindowViewResponseDTO> productDTOS = productService.getWindowViewByFilterForWeb(filterRequestDTO);
         return ResponseEntity.ok(productDTOS);
+    }
+
+
+    @GetMapping("/welcome-page")
+    public ResponseEntity<WebHomeResponse> getWelcomePage() {
+        return ResponseEntity.ok(productService.getDataForWebHomePage());
     }
 }

@@ -17,16 +17,22 @@ public class ProductFilterRequestDTO {
 
     private String search;
 
-    private Long categoryId;
+    private Long subCategoryId;
 
     private Boolean hot;
 
     private Boolean trend;
 
-    private String  discountId;
+    private String discountId;
 
     private Integer page;
 
     private Integer size;
 
+    public ProductFilterRequestDTO(Boolean hot, Boolean trend, Integer page, Integer size) {
+        this.hot = hot;
+        this.trend = trend;
+        this.page = page;
+        this.size = size;
+    }
 }

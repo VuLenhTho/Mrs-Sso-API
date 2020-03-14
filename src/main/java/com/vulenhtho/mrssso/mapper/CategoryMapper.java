@@ -6,6 +6,7 @@ import com.vulenhtho.mrssso.repository.CategoryRepository;
 import com.vulenhtho.mrssso.util.BeanUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -13,25 +14,34 @@ import java.util.stream.Collectors;
 public class CategoryMapper {
     private CategoryRepository categoryRepository;
 
-    public CategoryMapper(CategoryRepository categoryRepository) {
+    private SubCategoryMapper subCategoryMapper;
+
+    public CategoryMapper(CategoryRepository categoryRepository, SubCategoryMapper subCategoryMapper) {
         this.categoryRepository = categoryRepository;
+        this.subCategoryMapper = subCategoryMapper;
     }
 
-    public CategoryDTO toDTO(Category category){
+    public CategoryDTO toDTO(Category category) {
+        if (category == null) return null;
         CategoryDTO categoryDTO = new CategoryDTO();
         BeanUtils.refine(category, categoryDTO, BeanUtils::copyNonNull);
+        categoryDTO.setSubCategoryDTOS(subCategoryMapper.toDTO(category.getSubCategories()));
+
         return categoryDTO;
     }
 
-    public Set<CategoryDTO> toDTO(Set<Category> categories){
-        return categories.stream().map(this::toDTO).collect(Collectors.toSet());
+    public List<CategoryDTO> toDTO(List<Category> categories) {
+        if (categories == null) return null;
+        return categories.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
-    public Category toEntity(CategoryDTO categoryDTO){
-        return categoryRepository.getOne(categoryDTO.getId());
+    public Category toEntity(CategoryDTO categoryDTO) {
+        if (categoryDTO == null) return null;
+        return categoryRepository.findById(categoryDTO.getId()).orElse(null);
     }
 
-    public Set<Category> toEntity(Set<CategoryDTO> categoryDTOS){
+    public Set<Category> toEntity(Set<CategoryDTO> categoryDTOS) {
+        if (categoryDTOS == null) return null;
         return categoryDTOS.stream().map(this::toEntity).collect(Collectors.toSet());
     }
 }
