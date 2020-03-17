@@ -1,15 +1,18 @@
 package com.vulenhtho.mrssso.dto.response;
 
-import com.vulenhtho.mrssso.dto.CategoryDTO;
 import com.vulenhtho.mrssso.dto.WelcomeSlideDTO;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class WebHomeResponse {
 
     private List<ProductWebWindowViewResponseDTO> hotProductList = new ArrayList<>();
@@ -18,6 +21,6 @@ public class WebHomeResponse {
 
     private List<WelcomeSlideDTO> welcomeSlideDTOS = new ArrayList<>();
 
-    private List<CategoryDTO> categoryDTOS = new ArrayList<>();
+    private HeaderResponse headerResponse;
 
 }

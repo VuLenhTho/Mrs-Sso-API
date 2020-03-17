@@ -6,9 +6,11 @@ import com.vulenhtho.mrssso.dto.ProductColorSizeDTO;
 import com.vulenhtho.mrssso.dto.ProductDTO;
 import com.vulenhtho.mrssso.dto.WelcomeSlideDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
+import com.vulenhtho.mrssso.dto.response.HeaderResponse;
 import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
 import com.vulenhtho.mrssso.dto.response.ProductWebWindowViewResponseDTO;
 import com.vulenhtho.mrssso.dto.response.WebHomeResponse;
+import com.vulenhtho.mrssso.entity.Discount;
 import com.vulenhtho.mrssso.entity.Product;
 import com.vulenhtho.mrssso.entity.ProductColorSize;
 import com.vulenhtho.mrssso.mapper.CategoryMapper;
@@ -24,10 +26,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -184,9 +188,13 @@ public class ProductServiceImpl implements ProductService {
         List<ProductWebWindowViewResponseDTO> trendProduct = getWindowViewByFilterForWeb(filter).getContent();
 
         List<WelcomeSlideDTO> welcomeSlides = welcomeSlideMapper.toDTO(welcomeSlideRepository.getByIsDisabled(false));
-        List<CategoryDTO> categoryDTOS = categoryMapper.toDTO(categoryRepository.findAll());
+        return new WebHomeResponse(hotProduct, trendProduct, welcomeSlides, getHeaderResponse());
+    }
 
-        return new WebHomeResponse(hotProduct, trendProduct, welcomeSlides, categoryDTOS);
+    public HeaderResponse getHeaderResponse() {
+        List<CategoryDTO> categoryDTOS = categoryMapper.toDTO(categoryRepository.findAll(Sort.by("id").ascending()));
+        List<String> discounts = discountRepository.getByInTimeDiscount(Instant.now()).stream().map(Discount::getName).collect(Collectors.toList());
+        return new HeaderResponse(categoryDTOS, discounts);
     }
 
 
