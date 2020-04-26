@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class HeaderResponse {
+public class PageHeaderDTO {
 
     private List<CategoryDTO> categoryDTOS = new ArrayList<>();
 

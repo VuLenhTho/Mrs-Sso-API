@@ -108,6 +108,11 @@ public class ProductMapper {
         }
         if (!CollectionUtils.isEmpty(product.getDiscounts())) {
             productDTO.setDiscountDTOS(discountMapper.toDTO(product.getDiscounts()));
+            boolean hasDiscount = productDTO.getDiscountDTOS().stream().anyMatch(this::isInDiscountTimeAndForProduct);
+            if (hasDiscount) {
+                productDTO.setPrice(countPriceInDiscount(productDTO.getDiscountDTOS(), product.getPrice()));
+                productDTO.setOriginalPrice(product.getPrice());
+            }
         }
 
         return productDTO;
@@ -115,12 +120,10 @@ public class ProductMapper {
 
     public ProductWebResponseDTO toWebResponseDTO(Product product) {
         if (product == null) return null;
+
         ProductWebResponseDTO productWebResponseDTO = new ProductWebResponseDTO();
         BeanUtils.refine(toDTO(product), productWebResponseDTO, BeanUtils::copyNonNull);
 
-        if (!CollectionUtils.isEmpty(productWebResponseDTO.getDiscountDTOS())) {
-            productWebResponseDTO.setPrice(countPriceInDiscount(productWebResponseDTO.getDiscountDTOS(), product.getPrice()));
-        }
         return productWebResponseDTO;
     }
 
@@ -131,9 +134,11 @@ public class ProductMapper {
         BeanUtils.refine(product, responseDTO, BeanUtils::copyNonNull);
 
         if (!CollectionUtils.isEmpty(discountDTOS)) {
-            if (discountDTOS.stream().anyMatch(this::isDiscount)) {
-                responseDTO.setIsDiscount(true);
+            boolean hasDiscount = discountDTOS.stream().anyMatch(this::isInDiscountTimeAndForProduct);
+            if (hasDiscount) {
                 responseDTO.setPrice(countPriceInDiscount(discountDTOS, product.getPrice()));
+                responseDTO.setOriginalPrice(product.getPrice());
+                responseDTO.setIsDiscount(true);
             }
         }
         return responseDTO;
@@ -142,7 +147,7 @@ public class ProductMapper {
     private Long countPriceInDiscount(Set<DiscountDTO> discountDTOS, Long currentPrice) {
         Long finalPrice = currentPrice;
         for (DiscountDTO discountDTO : discountDTOS) {
-            if (isDiscount(discountDTO)) {
+            if (isInDiscountTimeAndForProduct(discountDTO)) {
                 if (discountDTO.getAmount() != null) {
                     finalPrice -= discountDTO.getAmount();
                 }
@@ -155,7 +160,7 @@ public class ProductMapper {
         return finalPrice;
     }
 
-    private boolean isDiscount(DiscountDTO discountDTO) {
+    private boolean isInDiscountTimeAndForProduct(DiscountDTO discountDTO) {
         Instant now = Instant.now();
         return now.isAfter(discountDTO.getStartDate()) && now.isBefore(discountDTO.getEndDate()) && discountDTO.getIsForProduct();
     }

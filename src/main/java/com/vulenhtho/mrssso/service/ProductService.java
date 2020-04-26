@@ -2,8 +2,8 @@ package com.vulenhtho.mrssso.service;
 
 import com.vulenhtho.mrssso.dto.ProductDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
+import com.vulenhtho.mrssso.dto.response.ListProductPageResponse;
 import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
-import com.vulenhtho.mrssso.dto.response.ProductWebWindowViewResponseDTO;
 import com.vulenhtho.mrssso.dto.response.WebHomeResponse;
 import org.springframework.data.domain.Page;
 
@@ -16,7 +16,7 @@ public interface ProductService {
 
     ProductWebResponseDTO findForWebById(Long id);
 
-    Page<ProductWebWindowViewResponseDTO> getWindowViewByFilterForWeb(ProductFilterRequestDTO filterRequest);
+    ListProductPageResponse getWindowViewByFilterForWeb(ProductFilterRequestDTO filterRequest);
 
     Page<ProductWebResponseDTO> getAllWithFilterForWeb(ProductFilterRequestDTO filterRequest);
 

@@ -21,6 +21,6 @@ public class WebHomeResponse {
 
     private List<WelcomeSlideDTO> welcomeSlideDTOS = new ArrayList<>();
 
-    private HeaderResponse headerResponse;
+    private PageHeaderDTO headerResponse;
 
 }

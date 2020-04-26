@@ -2,8 +2,8 @@ package com.vulenhtho.mrssso.controller.web;
 
 
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
+import com.vulenhtho.mrssso.dto.response.ListProductPageResponse;
 import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
-import com.vulenhtho.mrssso.dto.response.ProductWebWindowViewResponseDTO;
 import com.vulenhtho.mrssso.dto.response.WebHomeResponse;
 import com.vulenhtho.mrssso.repository.ProductRepository;
 import com.vulenhtho.mrssso.service.ProductService;
@@ -46,14 +46,15 @@ public class ProductWebController {
     }
 
     @GetMapping("/products/window-view")
-    public ResponseEntity<Page<ProductWebWindowViewResponseDTO>> getWindowViewWithFilter(
-            @RequestParam(required = false, defaultValue = "0") Integer page, @RequestParam(required = false, defaultValue = "5") Integer size
+    public ResponseEntity<ListProductPageResponse> getWindowViewWithFilter(
+            @RequestParam(required = false, defaultValue = "0") Integer page
+            , @RequestParam(required = false, defaultValue = "5") Integer size
             , @RequestParam(required = false) String sort, @RequestParam(required = false) String search
-            , @RequestParam(required = false) Long categoryId, @RequestParam(required = false) Boolean trend
+            , @RequestParam(required = false) Long subCategoryId, @RequestParam(required = false) Boolean trend
             , @RequestParam(required = false) Boolean hot) {
 
-        ProductFilterRequestDTO filterRequestDTO = new ProductFilterRequestDTO(sort, null, search, categoryId, hot, trend, null, page, size);
-        Page<ProductWebWindowViewResponseDTO> productDTOS = productService.getWindowViewByFilterForWeb(filterRequestDTO);
+        ProductFilterRequestDTO filterRequestDTO = new ProductFilterRequestDTO(sort, null, search, subCategoryId, hot, trend, null, page, size);
+        ListProductPageResponse productDTOS = productService.getWindowViewByFilterForWeb(filterRequestDTO);
         return ResponseEntity.ok(productDTOS);
     }
 

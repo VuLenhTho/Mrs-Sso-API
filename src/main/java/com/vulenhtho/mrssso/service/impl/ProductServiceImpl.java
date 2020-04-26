@@ -6,10 +6,7 @@ import com.vulenhtho.mrssso.dto.ProductColorSizeDTO;
 import com.vulenhtho.mrssso.dto.ProductDTO;
 import com.vulenhtho.mrssso.dto.WelcomeSlideDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
-import com.vulenhtho.mrssso.dto.response.HeaderResponse;
-import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
-import com.vulenhtho.mrssso.dto.response.ProductWebWindowViewResponseDTO;
-import com.vulenhtho.mrssso.dto.response.WebHomeResponse;
+import com.vulenhtho.mrssso.dto.response.*;
 import com.vulenhtho.mrssso.entity.Discount;
 import com.vulenhtho.mrssso.entity.Product;
 import com.vulenhtho.mrssso.entity.ProductColorSize;
@@ -35,6 +32,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
+
     private ProductRepository productRepository;
 
     private ProductMapper productMapper;
@@ -121,13 +119,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductWebWindowViewResponseDTO> getWindowViewByFilterForWeb(ProductFilterRequestDTO filterRequest) {
-        return productRepository.findAll(ProductSpecification.filterProduct(filterRequest)
+    public ListProductPageResponse getWindowViewByFilterForWeb(ProductFilterRequestDTO filterRequest) {
+        Page<ProductWebWindowViewResponseDTO> products = productRepository.findAll(ProductSpecification.filterProduct(filterRequest)
                 , PageRequest.of(
                         filterRequest.getPage()
                         , filterRequest.getSize()
                         , sort(filterRequest.getSort())
                 )).map(productMapper::toWebWindowViewResponseDTO);
+        return new ListProductPageResponse(products.getContent(), products.getTotalPages(), products.getNumber(), getHeaderResponse());
     }
 
     @Override
@@ -159,6 +158,12 @@ public class ProductServiceImpl implements ProductService {
                     return Sort.by("createdDate").ascending();
                 case Constant.MODIFIED_DES:
                     return Sort.by("lastModifiedDate").descending();
+                case Constant.HOT_DES:
+                    return Sort.by("hot").descending();
+                case Constant.PRICE_ASC:
+                    return Sort.by("price").ascending();
+                case Constant.PRICE_DES:
+                    return Sort.by("price").descending();
             }
         }
         return Sort.by("createdDate").descending();
@@ -182,19 +187,20 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public WebHomeResponse getDataForWebHomePage() {
         ProductFilterRequestDTO filter = new ProductFilterRequestDTO(true, null, 0, 16);
-        List<ProductWebWindowViewResponseDTO> hotProduct = getWindowViewByFilterForWeb(filter).getContent();
+        ListProductPageResponse productAndHeader = getWindowViewByFilterForWeb(filter);
+        List<ProductWebWindowViewResponseDTO> hotProduct = productAndHeader.getProducts();
         filter.setHot(null);
         filter.setTrend(true);
-        List<ProductWebWindowViewResponseDTO> trendProduct = getWindowViewByFilterForWeb(filter).getContent();
+        List<ProductWebWindowViewResponseDTO> trendProduct = getWindowViewByFilterForWeb(filter).getProducts();
 
         List<WelcomeSlideDTO> welcomeSlides = welcomeSlideMapper.toDTO(welcomeSlideRepository.getByIsDisabled(false));
-        return new WebHomeResponse(hotProduct, trendProduct, welcomeSlides, getHeaderResponse());
+        return new WebHomeResponse(hotProduct, trendProduct, welcomeSlides, productAndHeader.getHeader());
     }
 
-    public HeaderResponse getHeaderResponse() {
+    public PageHeaderDTO getHeaderResponse() {
         List<CategoryDTO> categoryDTOS = categoryMapper.toDTO(categoryRepository.findAll(Sort.by("id").ascending()));
         List<String> discounts = discountRepository.getByInTimeDiscount(Instant.now()).stream().map(Discount::getName).collect(Collectors.toList());
-        return new HeaderResponse(categoryDTOS, discounts);
+        return new PageHeaderDTO(categoryDTOS, discounts);
     }
 
 

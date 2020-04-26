@@ -19,6 +19,8 @@ public class ProductDTO {
 
     private Long price;
 
+    private Long originalPrice;
+
     private String shortDescription;
 
     private ProductStatus status;

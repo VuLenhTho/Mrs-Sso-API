@@ -17,6 +17,8 @@ public class ProductWebResponseDTO {
 
     private Long price;
 
+    private Long originalPrice;
+
     private String shortDescription;
 
     private ProductStatus status;

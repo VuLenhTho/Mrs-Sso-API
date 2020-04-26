@@ -11,6 +11,9 @@ public class Constant {
     public static final String DATE_ASC = "date-asc";
     public static final String MODIFIED_DES = "mod-des";
     public static final String MODIFIED_ASC = "mod-asc";
+    public static final String HOT_DES = "hot-des";
+    public static final String PRICE_DES = "price-des";
+    public static final String PRICE_ASC = "price-asc";
 
     public static final URI DEFAULT_TYPE = URI.create("https://www.jhipster.tech/problem/problem-with-message");
 

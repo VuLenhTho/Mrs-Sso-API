@@ -19,11 +19,10 @@ public class ProductSpecification {
             return Specification
                     .where(withStatus(filter.getStatus()))
                     .and(withTrend(filter.getTrend()))
-                    .and(withCategory(filter.getSubCategoryId()))
+                    .and(withSubCategory(filter.getSubCategoryId()))
                     .and(withHot(filter.getHot()))
                     .and(withDiscount(filter.getDiscountId()))
-                    .and(Specification.where(withCreatedBy(filter.getSearch()))
-                            .or(withName(filter.getSearch())));
+                    .and(withName(filter.getSearch()));
 
     }
 
@@ -40,7 +39,7 @@ public class ProductSpecification {
                 -> criteriaBuilder.isNotNull(root.get("id"));
     }
 
-    public static Specification<Product> withCategory(Long id) {
+    public static Specification<Product> withSubCategory(Long id) {
         if (id == null)
             return null;
 
