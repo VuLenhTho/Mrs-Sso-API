@@ -2,10 +2,14 @@ package com.vulenhtho.mrssso.mapper;
 
 import com.vulenhtho.mrssso.dto.DiscountDTO;
 import com.vulenhtho.mrssso.dto.ProductDTO;
+import com.vulenhtho.mrssso.dto.request.ItemDTO;
+import com.vulenhtho.mrssso.dto.response.ItemShowInCartDTO;
 import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
 import com.vulenhtho.mrssso.dto.response.ProductWebWindowViewResponseDTO;
+import com.vulenhtho.mrssso.entity.Color;
 import com.vulenhtho.mrssso.entity.Product;
 import com.vulenhtho.mrssso.entity.ProductColorSize;
+import com.vulenhtho.mrssso.entity.Size;
 import com.vulenhtho.mrssso.repository.ColorRepository;
 import com.vulenhtho.mrssso.repository.DiscountRepository;
 import com.vulenhtho.mrssso.repository.SizeRepository;
@@ -17,27 +21,29 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class ProductMapper {
-    private ColorRepository colorRepository;
+    private final ColorRepository colorRepository;
 
-    private DiscountRepository discountRepository;
+    private final DiscountRepository discountRepository;
 
-    private SizeRepository sizeRepository;
+    private final SizeRepository sizeRepository;
 
-    private SubCategoryRepository subCategoryRepository;
+    private final SubCategoryRepository subCategoryRepository;
 
-    private ProductColorSizeMapper productColorSizeMapper;
+    private final ProductColorSizeMapper productColorSizeMapper;
 
-    private ColorMapper colorMapper;
+    private final ColorMapper colorMapper;
 
-    private SizeMapper sizeMapper;
+    private final SizeMapper sizeMapper;
 
-    private DiscountMapper discountMapper;
+    private final DiscountMapper discountMapper;
 
-    private SubCategoryMapper subCategoryMapper;
+    private final SubCategoryMapper subCategoryMapper;
 
     @Autowired
     public ProductMapper(ColorRepository colorRepository, DiscountRepository discountRepository, SizeRepository sizeRepository, SubCategoryRepository subCategoryRepository, ProductColorSizeMapper productColorSizeMapper, ColorMapper colorMapper, SizeMapper sizeMapper, DiscountMapper discountMapper, SubCategoryMapper subCategoryMapper) {
@@ -106,13 +112,12 @@ public class ProductMapper {
         if (!CollectionUtils.isEmpty(product.getSizes())) {
             productDTO.setSizeDTOS(sizeMapper.toDTO(product.getSizes()));
         }
-        if (!CollectionUtils.isEmpty(product.getDiscounts())) {
-            productDTO.setDiscountDTOS(discountMapper.toDTO(product.getDiscounts()));
-            boolean hasDiscount = productDTO.getDiscountDTOS().stream().anyMatch(this::isInDiscountTimeAndForProduct);
-            if (hasDiscount) {
-                productDTO.setPrice(countPriceInDiscount(productDTO.getDiscountDTOS(), product.getPrice()));
-                productDTO.setOriginalPrice(product.getPrice());
-            }
+        Set<DiscountDTO> discountDTOSInIsActive = filterDiscountIsInDiscountTimeAndForProduct(discountMapper.toDTO(product.getDiscounts()));
+        if (!CollectionUtils.isEmpty(discountDTOSInIsActive)) {
+            productDTO.setDiscountDTOS(discountDTOSInIsActive);
+            productDTO.setPrice(countPriceInDiscount(productDTO.getDiscountDTOS(), product.getPrice()));
+            productDTO.setOriginalPrice(product.getPrice());
+
         }
 
         return productDTO;
@@ -133,15 +138,32 @@ public class ProductMapper {
         Set<DiscountDTO> discountDTOS = discountMapper.toDTO(product.getDiscounts());
         BeanUtils.refine(product, responseDTO, BeanUtils::copyNonNull);
 
-        if (!CollectionUtils.isEmpty(discountDTOS)) {
-            boolean hasDiscount = discountDTOS.stream().anyMatch(this::isInDiscountTimeAndForProduct);
-            if (hasDiscount) {
-                responseDTO.setPrice(countPriceInDiscount(discountDTOS, product.getPrice()));
-                responseDTO.setOriginalPrice(product.getPrice());
-                responseDTO.setIsDiscount(true);
-            }
+        Set<DiscountDTO> discountDTOSInIsActive = filterDiscountIsInDiscountTimeAndForProduct(discountMapper.toDTO(product.getDiscounts()));
+        if (!CollectionUtils.isEmpty(discountDTOSInIsActive)) {
+
+            responseDTO.setPrice(countPriceInDiscount(discountDTOS, product.getPrice()));
+            responseDTO.setOriginalPrice(product.getPrice());
+            responseDTO.setIsDiscount(true);
+
         }
         return responseDTO;
+    }
+
+    public ItemShowInCartDTO toItemShowInCartDTO(Product product, ItemDTO itemDTO) {
+        if (product == null) return null;
+        ItemShowInCartDTO itemResult = new ItemShowInCartDTO();
+        BeanUtils.refine(product, itemResult, BeanUtils::copyNonNull);
+        Optional<Color> colorName = product.getColors().stream().filter(color -> color.getId().equals(itemDTO.getColorId())).findFirst();
+        Optional<Size> sizeName = product.getSizes().stream().filter(size -> size.getId().equals(itemDTO.getSizeId())).findFirst();
+
+        itemResult.setColor(colorName.map(Color::getName).orElse(null));
+        itemResult.setSize(sizeName.map(Size::getName).orElse(null));
+        Set<DiscountDTO> discountDTOS = discountMapper.toDTO(product.getDiscounts());
+        itemResult.setPrice(countPriceInDiscount(discountDTOS, product.getPrice()));
+        itemResult.setQuantity(itemDTO.getQuantity());
+        itemResult.setTotalPrice(itemResult.getPrice() * itemResult.getQuantity());
+
+        return itemResult;
     }
 
     private Long countPriceInDiscount(Set<DiscountDTO> discountDTOS, Long currentPrice) {
@@ -151,9 +173,9 @@ public class ProductMapper {
                 if (discountDTO.getAmount() != null) {
                     finalPrice -= discountDTO.getAmount();
                 }
-                if (discountDTO.getPercent() != null) {
-                    finalPrice -= (currentPrice * discountDTO.getPercent() / 100);
-                }
+//                if (discountDTO.getPercent() != null) {
+//                    finalPrice -= (currentPrice * discountDTO.getPercent() / 100);
+//                }
             }
 
         }
@@ -163,5 +185,9 @@ public class ProductMapper {
     private boolean isInDiscountTimeAndForProduct(DiscountDTO discountDTO) {
         Instant now = Instant.now();
         return now.isAfter(discountDTO.getStartDate()) && now.isBefore(discountDTO.getEndDate()) && discountDTO.getIsForProduct();
+    }
+
+    private Set<DiscountDTO> filterDiscountIsInDiscountTimeAndForProduct(Set<DiscountDTO> discountDTOS) {
+        return discountDTOS.stream().filter(this::isInDiscountTimeAndForProduct).collect(Collectors.toSet());
     }
 }

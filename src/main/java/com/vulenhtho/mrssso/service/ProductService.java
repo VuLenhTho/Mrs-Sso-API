@@ -1,10 +1,9 @@
 package com.vulenhtho.mrssso.service;
 
 import com.vulenhtho.mrssso.dto.ProductDTO;
+import com.vulenhtho.mrssso.dto.request.ItemDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
-import com.vulenhtho.mrssso.dto.response.ListProductPageResponse;
-import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
-import com.vulenhtho.mrssso.dto.response.WebHomeResponse;
+import com.vulenhtho.mrssso.dto.response.*;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -29,4 +28,8 @@ public interface ProductService {
     boolean delete(List<Long> ids);
 
     WebHomeResponse getDataForWebHomePage();
+
+    PageHeaderDTO getHeaderResponse();
+
+    ItemsForCartAndHeader getItemShowInCart(List<ItemDTO> itemDTOS);
 }

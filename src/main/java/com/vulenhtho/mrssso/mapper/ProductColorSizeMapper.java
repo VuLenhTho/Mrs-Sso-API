@@ -2,7 +2,6 @@ package com.vulenhtho.mrssso.mapper;
 
 import com.vulenhtho.mrssso.dto.ProductColorSizeDTO;
 import com.vulenhtho.mrssso.entity.ProductColorSize;
-import com.vulenhtho.mrssso.util.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -14,7 +13,11 @@ public class ProductColorSizeMapper {
     public ProductColorSizeDTO toDTO(ProductColorSize productColorSize){
         if (productColorSize == null) return null;
         ProductColorSizeDTO productColorSizeDTO = new ProductColorSizeDTO();
-        BeanUtils.refine(productColorSize, productColorSizeDTO, BeanUtils::copyNonNull);
+        productColorSizeDTO.setColorId(productColorSize.getColor().getId());
+        productColorSizeDTO.setProductId(productColorSize.getProduct().getId());
+        productColorSizeDTO.setSizeId(productColorSize.getSize().getId());
+        productColorSizeDTO.setQuantity(productColorSize.getQuantity());
+
         return productColorSizeDTO;
     }
 

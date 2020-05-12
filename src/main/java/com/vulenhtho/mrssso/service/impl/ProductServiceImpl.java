@@ -5,6 +5,7 @@ import com.vulenhtho.mrssso.dto.CategoryDTO;
 import com.vulenhtho.mrssso.dto.ProductColorSizeDTO;
 import com.vulenhtho.mrssso.dto.ProductDTO;
 import com.vulenhtho.mrssso.dto.WelcomeSlideDTO;
+import com.vulenhtho.mrssso.dto.request.ItemDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
 import com.vulenhtho.mrssso.dto.response.*;
 import com.vulenhtho.mrssso.entity.Discount;
@@ -115,7 +116,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductWebResponseDTO findForWebById(Long id) {
         Optional<Product> product = productRepository.findById(id);
-        return product.map(value -> productMapper.toWebResponseDTO(value)).orElse(null);
+        ProductWebResponseDTO productWebResponseDTO = product.map(value -> productMapper.toWebResponseDTO(value)).orElse(new ProductWebResponseDTO());
+        productWebResponseDTO.setHeader(getHeaderResponse());
+        return productWebResponseDTO;
     }
 
     @Override
@@ -204,4 +207,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
+    @Override
+    public ItemsForCartAndHeader getItemShowInCart(List<ItemDTO> itemDTOS) {
+        List<ItemShowInCartDTO> itemShowInCartDTOS = itemDTOS.stream().map(itemDTO -> {
+            Product product = productRepository.getOne(itemDTO.getProductId());
+            return productMapper.toItemShowInCartDTO(product, itemDTO);
+        }).collect(Collectors.toList());
+
+        return new ItemsForCartAndHeader(itemShowInCartDTOS, getHeaderResponse());
+    }
 }

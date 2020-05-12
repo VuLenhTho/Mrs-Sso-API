@@ -1,10 +1,9 @@
 package com.vulenhtho.mrssso.controller.web;
 
 
+import com.vulenhtho.mrssso.dto.request.ItemDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
-import com.vulenhtho.mrssso.dto.response.ListProductPageResponse;
-import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
-import com.vulenhtho.mrssso.dto.response.WebHomeResponse;
+import com.vulenhtho.mrssso.dto.response.*;
 import com.vulenhtho.mrssso.repository.ProductRepository;
 import com.vulenhtho.mrssso.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,16 +11,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/web")
 public class ProductWebController {
-    private ProductService productService;
-    private ProductRepository productRepository;
+    private final ProductService productService;
 
     @Autowired
     public ProductWebController(ProductService productService, ProductRepository productRepository) {
         this.productService = productService;
-        this.productRepository = productRepository;
     }
 
     @GetMapping("/product/{id}")
@@ -62,5 +61,16 @@ public class ProductWebController {
     @GetMapping("/welcome-page")
     public ResponseEntity<WebHomeResponse> getWelcomePage() {
         return ResponseEntity.ok(productService.getDataForWebHomePage());
+    }
+
+    @GetMapping("/header")
+    public ResponseEntity<PageHeaderDTO> getHeader() {
+        return ResponseEntity.ok(productService.getHeaderResponse());
+    }
+
+    @PostMapping("/products/itemInCart")
+    public ResponseEntity<ItemsForCartAndHeader> getItemDetailForCart(@RequestBody List<ItemDTO> items) {
+        ItemsForCartAndHeader result = productService.getItemShowInCart(items);
+        return ResponseEntity.ok(result);
     }
 }
