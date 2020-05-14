@@ -57,7 +57,6 @@ public class ProductWebController {
         return ResponseEntity.ok(productDTOS);
     }
 
-
     @GetMapping("/welcome-page")
     public ResponseEntity<WebHomeResponse> getWelcomePage() {
         return ResponseEntity.ok(productService.getDataForWebHomePage());

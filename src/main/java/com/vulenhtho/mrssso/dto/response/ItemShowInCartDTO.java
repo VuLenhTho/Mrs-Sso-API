@@ -19,6 +19,8 @@ public class ItemShowInCartDTO {
 
     private Long price;
 
+    private Long importPrice;
+
     private Long quantity;
 
     private Long totalPrice;

@@ -25,17 +25,17 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
-    private PasswordEncoder encoder;
+    private final PasswordEncoder encoder;
 
-    private JwtProvider jwtProvider;
+    private final JwtProvider jwtProvider;
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    private UserService userService;
+    private final UserService userService;
 
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
     @Autowired
     public AuthController(AuthenticationManager authenticationManager, PasswordEncoder encoder, JwtProvider jwtProvider, UserRepository userRepository, UserService userService, UserMapper userMapper) {

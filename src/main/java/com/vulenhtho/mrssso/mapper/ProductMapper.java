@@ -160,6 +160,7 @@ public class ProductMapper {
         itemResult.setSize(sizeName.map(Size::getName).orElse(null));
         Set<DiscountDTO> discountDTOS = discountMapper.toDTO(product.getDiscounts());
         itemResult.setPrice(countPriceInDiscount(discountDTOS, product.getPrice()));
+        itemResult.setImportPrice(product.getImportPrice());
         itemResult.setQuantity(itemDTO.getQuantity());
         itemResult.setTotalPrice(itemResult.getPrice() * itemResult.getQuantity());
 

@@ -1,10 +1,7 @@
 package com.vulenhtho.mrssso.service.impl;
 
 import com.vulenhtho.mrssso.config.Constant;
-import com.vulenhtho.mrssso.dto.CategoryDTO;
-import com.vulenhtho.mrssso.dto.ProductColorSizeDTO;
-import com.vulenhtho.mrssso.dto.ProductDTO;
-import com.vulenhtho.mrssso.dto.WelcomeSlideDTO;
+import com.vulenhtho.mrssso.dto.*;
 import com.vulenhtho.mrssso.dto.request.ItemDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
 import com.vulenhtho.mrssso.dto.response.*;
@@ -12,6 +9,7 @@ import com.vulenhtho.mrssso.entity.Discount;
 import com.vulenhtho.mrssso.entity.Product;
 import com.vulenhtho.mrssso.entity.ProductColorSize;
 import com.vulenhtho.mrssso.mapper.CategoryMapper;
+import com.vulenhtho.mrssso.mapper.DiscountMapper;
 import com.vulenhtho.mrssso.mapper.ProductMapper;
 import com.vulenhtho.mrssso.mapper.WelcomeSlideMapper;
 import com.vulenhtho.mrssso.repository.*;
@@ -34,28 +32,30 @@ import java.util.stream.Collectors;
 @Service
 public class ProductServiceImpl implements ProductService {
 
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
 
-    private ProductMapper productMapper;
+    private final ProductMapper productMapper;
 
-    private ProductColorSizeRepository productColorSizeRepository;
+    private final ProductColorSizeRepository productColorSizeRepository;
 
-    private ColorRepository colorRepository;
+    private final ColorRepository colorRepository;
 
-    private DiscountRepository discountRepository;
+    private final DiscountRepository discountRepository;
 
-    private SizeRepository sizeRepository;
+    private final SizeRepository sizeRepository;
 
-    private WelcomeSlideRepository welcomeSlideRepository;
+    private final WelcomeSlideRepository welcomeSlideRepository;
 
-    private WelcomeSlideMapper welcomeSlideMapper;
+    private final WelcomeSlideMapper welcomeSlideMapper;
 
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
-    private CategoryMapper categoryMapper;
+    private final CategoryMapper categoryMapper;
+
+    private final DiscountMapper discountMapper;
 
     @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, ColorRepository colorRepository, DiscountRepository discountRepository, SizeRepository sizeRepository, SubCategoryRepository subCategoryRepository, ProductColorSizeRepository productColorSizeRepository, WelcomeSlideRepository welcomeSlideRepository, WelcomeSlideMapper welcomeSlideMapper, CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
+    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, ColorRepository colorRepository, DiscountRepository discountRepository, SizeRepository sizeRepository, SubCategoryRepository subCategoryRepository, ProductColorSizeRepository productColorSizeRepository, WelcomeSlideRepository welcomeSlideRepository, WelcomeSlideMapper welcomeSlideMapper, CategoryRepository categoryRepository, CategoryMapper categoryMapper, DiscountMapper discountMapper) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.productColorSizeRepository = productColorSizeRepository;
@@ -66,6 +66,7 @@ public class ProductServiceImpl implements ProductService {
         this.welcomeSlideMapper = welcomeSlideMapper;
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
+        this.discountMapper = discountMapper;
     }
 
     @Override
@@ -213,7 +214,7 @@ public class ProductServiceImpl implements ProductService {
             Product product = productRepository.getOne(itemDTO.getProductId());
             return productMapper.toItemShowInCartDTO(product, itemDTO);
         }).collect(Collectors.toList());
-
-        return new ItemsForCartAndHeader(itemShowInCartDTOS, getHeaderResponse());
+        Set<DiscountDTO> discountDTOS = discountMapper.toDTO(discountRepository.getByInTimeDiscountAndForBill(Instant.now()));
+        return new ItemsForCartAndHeader(itemShowInCartDTOS, discountDTOS, getHeaderResponse());
     }
 }
