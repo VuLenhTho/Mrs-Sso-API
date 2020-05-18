@@ -4,7 +4,7 @@ import com.vulenhtho.mrssso.config.Constant;
 import com.vulenhtho.mrssso.dto.UserDTO;
 import com.vulenhtho.mrssso.dto.request.UserFilterRequestDTO;
 import com.vulenhtho.mrssso.dto.response.UserInfoWebResponseDTO;
-import com.vulenhtho.mrssso.entity.Receipt;
+import com.vulenhtho.mrssso.entity.Bill;
 import com.vulenhtho.mrssso.entity.Role;
 import com.vulenhtho.mrssso.entity.User;
 import com.vulenhtho.mrssso.mapper.UserMapper;
@@ -186,7 +186,7 @@ public class UserServiceImpl implements UserService {
         }
         UserInfoWebResponseDTO userInfoWebResponseDTO = new UserInfoWebResponseDTO();
         BeanUtils.refine(user, userInfoWebResponseDTO, BeanUtils::copyNonNull);
-        List<Long> receiptIds = user.getReceipts().stream().map(Receipt::getId).collect(Collectors.toList());
+        List<Long> receiptIds = user.getBills().stream().map(Bill::getId).collect(Collectors.toList());
         userInfoWebResponseDTO.setReceiptIds(receiptIds);
 
         return userInfoWebResponseDTO;

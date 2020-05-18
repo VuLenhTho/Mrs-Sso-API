@@ -49,11 +49,4 @@ public class Discount implements Serializable {
     @JsonIgnore
     private Set<Product> products = new HashSet<>();
 
-    @ManyToMany(mappedBy = "discounts")
-    @JsonIgnore
-    private Set<Receipt> receipts = new HashSet<>();
-
-    @ManyToMany(mappedBy = "discounts")
-    @JsonIgnore
-    private Set<Item> items = new HashSet<>();
 }

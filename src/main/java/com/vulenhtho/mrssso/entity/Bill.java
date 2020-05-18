@@ -1,6 +1,6 @@
 package com.vulenhtho.mrssso.entity;
 
-import com.vulenhtho.mrssso.entity.enumeration.PaymentType;
+import com.vulenhtho.mrssso.entity.enumeration.PaymentMethod;
 import com.vulenhtho.mrssso.entity.enumeration.ReceiptStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,16 +10,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "receipt")
+@Table(name = "bill")
 @Getter
 @Setter
-public class Receipt extends AbstractAuditing{
+public class Bill extends AbstractAuditing {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
-    private String customerName;
+    private String receiver;
 
     @Column
     private String phone;
@@ -31,23 +31,23 @@ public class Receipt extends AbstractAuditing{
     private Long shippingCosts;
 
     @Column
-    private Long amount;
+    private Long finalPayMoney;
+
+    @Column
+    private Long totalImportMoney;
+
+    @Column
+    private Long totalMoney;
 
     @Column
     @Enumerated(EnumType.STRING)
-    private PaymentType paymentType;
+    private PaymentMethod paymentMethod;
 
     @Column
     private String paymentInfo;
 
     @Column
-    private String  note;
-
-    @Column
-    private String security;
-
-    @Column
-    private Long coinsUsed;
+    private String note;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -57,12 +57,7 @@ public class Receipt extends AbstractAuditing{
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "receipt")
+    @OneToMany(mappedBy = "bill")
     private Set<Item> items = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(name = "receipt_discount",
-            joinColumns = @JoinColumn(name = "receipt_id"),
-            inverseJoinColumns = @JoinColumn(name = "discount_id"))
-    private Set<Discount> discounts = new HashSet<>();
 }

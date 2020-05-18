@@ -53,7 +53,7 @@ public class UserController {
     @PutMapping("/user")
     public ResponseEntity<?> update(@RequestBody UserDTO userDTO) {
         if (userService.update(userDTO)) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(userDTO);
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found user with userName:" + userDTO.getUserName());
     }

@@ -78,6 +78,6 @@ public class User extends AbstractAuditing {
     private Set<Role> roles = new HashSet<>();
 
     @OneToMany(mappedBy = "user")
-    private Set<Receipt> receipts = new HashSet<>();
+    private Set<Bill> bills = new HashSet<>();
 
 }

@@ -7,8 +7,6 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 @Table
 @Entity(name = "item")
@@ -25,22 +23,23 @@ public class Item implements Serializable {
     private Long id;
 
     @Column
+    private String color;
+
+    @Column
+    private String size;
+
+    @Column
     private Long price;
 
     @Column
     private Long quantity;
 
     @ManyToOne
-    @JoinColumn(name = "receipt_id")
-    private Receipt receipt;
+    @JoinColumn(name = "bill_id")
+    private Bill bill;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @ManyToMany
-    @JoinTable(name = "item_discount",
-            joinColumns = @JoinColumn(name = "item_id"),
-            inverseJoinColumns = @JoinColumn(name = "discount_id"))
-    private Set<Discount> discounts = new HashSet<>();
 }

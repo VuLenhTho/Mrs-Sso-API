@@ -1,6 +1,7 @@
 package com.vulenhtho.mrssso.controller.web;
 
 
+import com.vulenhtho.mrssso.dto.request.CartDTO;
 import com.vulenhtho.mrssso.dto.request.ItemDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
 import com.vulenhtho.mrssso.dto.response.*;
@@ -71,5 +72,11 @@ public class ProductWebController {
     public ResponseEntity<ItemsForCartAndHeader> getItemDetailForCart(@RequestBody List<ItemDTO> items) {
         ItemsForCartAndHeader result = productService.getItemShowInCart(items);
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/products/createBill")
+    public ResponseEntity<String> createBill(@RequestBody CartDTO cartDTO) {
+        productService.createBill(cartDTO);
+        return ResponseEntity.ok("Thanh cong");
     }
 }

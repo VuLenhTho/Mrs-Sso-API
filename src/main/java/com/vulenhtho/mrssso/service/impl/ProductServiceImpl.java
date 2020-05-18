@@ -2,12 +2,11 @@ package com.vulenhtho.mrssso.service.impl;
 
 import com.vulenhtho.mrssso.config.Constant;
 import com.vulenhtho.mrssso.dto.*;
+import com.vulenhtho.mrssso.dto.request.CartDTO;
 import com.vulenhtho.mrssso.dto.request.ItemDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
 import com.vulenhtho.mrssso.dto.response.*;
-import com.vulenhtho.mrssso.entity.Discount;
-import com.vulenhtho.mrssso.entity.Product;
-import com.vulenhtho.mrssso.entity.ProductColorSize;
+import com.vulenhtho.mrssso.entity.*;
 import com.vulenhtho.mrssso.mapper.CategoryMapper;
 import com.vulenhtho.mrssso.mapper.DiscountMapper;
 import com.vulenhtho.mrssso.mapper.ProductMapper;
@@ -15,6 +14,7 @@ import com.vulenhtho.mrssso.mapper.WelcomeSlideMapper;
 import com.vulenhtho.mrssso.repository.*;
 import com.vulenhtho.mrssso.service.ProductService;
 import com.vulenhtho.mrssso.specification.ProductSpecification;
+import com.vulenhtho.mrssso.util.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -54,8 +54,12 @@ public class ProductServiceImpl implements ProductService {
 
     private final DiscountMapper discountMapper;
 
+    private final BillRepository billRepository;
+
+    private final ItemRepository itemRepository;
+
     @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, ColorRepository colorRepository, DiscountRepository discountRepository, SizeRepository sizeRepository, SubCategoryRepository subCategoryRepository, ProductColorSizeRepository productColorSizeRepository, WelcomeSlideRepository welcomeSlideRepository, WelcomeSlideMapper welcomeSlideMapper, CategoryRepository categoryRepository, CategoryMapper categoryMapper, DiscountMapper discountMapper) {
+    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, ColorRepository colorRepository, DiscountRepository discountRepository, SizeRepository sizeRepository, SubCategoryRepository subCategoryRepository, ProductColorSizeRepository productColorSizeRepository, WelcomeSlideRepository welcomeSlideRepository, WelcomeSlideMapper welcomeSlideMapper, CategoryRepository categoryRepository, CategoryMapper categoryMapper, DiscountMapper discountMapper, BillRepository billRepository, ItemRepository itemRepository) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.productColorSizeRepository = productColorSizeRepository;
@@ -67,6 +71,8 @@ public class ProductServiceImpl implements ProductService {
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
         this.discountMapper = discountMapper;
+        this.billRepository = billRepository;
+        this.itemRepository = itemRepository;
     }
 
     @Override
@@ -216,5 +222,31 @@ public class ProductServiceImpl implements ProductService {
         }).collect(Collectors.toList());
         Set<DiscountDTO> discountDTOS = discountMapper.toDTO(discountRepository.getByInTimeDiscountAndForBill(Instant.now()));
         return new ItemsForCartAndHeader(itemShowInCartDTOS, discountDTOS, getHeaderResponse());
+    }
+
+    @Override
+    public void createBill(CartDTO cartDTO) {
+        Bill billToSave = new Bill();
+
+        BeanUtils.refine(cartDTO, billToSave, BeanUtils::copyNonNull);
+        billToSave.setPaymentInfo(cartDTO.getAccountName() + "," + cartDTO.getAccountNumber());
+
+        Bill finalBillToSave = billRepository.save(billToSave);
+        Set<Item> items = cartDTO.getItemList().stream().map(itemDTO -> {
+            Item item = new Item();
+            item.setQuantity(itemDTO.getQuantity());
+            item.setPrice(itemDTO.getPrice());
+            Product product = productRepository.getOne(itemDTO.getProductId());
+            Color color = colorRepository.getOne(itemDTO.getColorId());
+            Size size = sizeRepository.getOne(itemDTO.getSizeId());
+            item.setColor(color.getName());
+            item.setSize(size.getName());
+            item.setProduct(product);
+            item.setBill(finalBillToSave);
+            return item;
+        }).collect(Collectors.toSet());
+
+        itemRepository.saveAll(items);
+
     }
 }
