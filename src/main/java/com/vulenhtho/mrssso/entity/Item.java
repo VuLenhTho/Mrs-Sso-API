@@ -32,6 +32,9 @@ public class Item implements Serializable {
     private Long price;
 
     @Column
+    private Long importPrice;
+
+    @Column
     private Long quantity;
 
     @ManyToOne

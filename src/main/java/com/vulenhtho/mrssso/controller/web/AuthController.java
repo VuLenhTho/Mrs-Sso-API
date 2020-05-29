@@ -1,4 +1,4 @@
-package com.vulenhtho.mrssso.controller;
+package com.vulenhtho.mrssso.controller.web;
 
 import com.vulenhtho.mrssso.dto.RoleDTO;
 import com.vulenhtho.mrssso.dto.UserDTO;

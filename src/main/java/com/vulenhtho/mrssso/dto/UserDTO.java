@@ -28,6 +28,8 @@ public class UserDTO {
 
     private String phone;
 
+    private String address;
+
     private String avatarUrl;
 
     private Long coins;

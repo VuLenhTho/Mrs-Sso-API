@@ -47,6 +47,9 @@ public class User extends AbstractAuditing {
     private String phone;
 
     @Column
+    private String address;
+
+    @Column
     private String avatarUrl;
 
     @Column

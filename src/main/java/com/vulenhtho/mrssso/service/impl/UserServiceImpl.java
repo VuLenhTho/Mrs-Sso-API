@@ -13,11 +13,11 @@ import com.vulenhtho.mrssso.repository.UserRepository;
 import com.vulenhtho.mrssso.service.UserService;
 import com.vulenhtho.mrssso.specification.UserSpecification;
 import com.vulenhtho.mrssso.util.BeanUtils;
+import com.vulenhtho.mrssso.util.CommonUtils;
 import com.vulenhtho.mrssso.util.RandomUtil;
 import com.vulenhtho.mrssso.util.SecurityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -83,7 +83,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean changePassword(String currentPassword, String newPassword) {
-        User user = userRepository.findByUserName(SecurityUtils.getCurrentUserLogin().get()).get();
+        User user = userRepository.findByUserName(SecurityUtils.getCurrentUserNameLogin().get()).get();
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             return false;
         }
@@ -130,22 +130,8 @@ public class UserServiceImpl implements UserService {
                 , PageRequest.of(
                         filterRequest.getPage()
                         , filterRequest.getSize()
-                        , sort(filterRequest.getSort())
+                        , CommonUtils.getSort(filterRequest.getSort())
                 )).map(userMapper::toDTO);
-    }
-
-    private Sort sort(String typeDateSort) {
-        if (typeDateSort != null) {
-            switch (typeDateSort) {
-                case Constant.DATE_DES:
-                    return Sort.by("createdDate").descending();
-                case Constant.DATE_ASC:
-                    return Sort.by("createdDate").ascending();
-                case Constant.MODIFIED_DES:
-                    return Sort.by("lastModifiedDate").descending();
-            }
-        }
-        return Sort.by("createdDate").descending();
     }
 
     @Override
@@ -180,7 +166,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoWebResponseDTO getUserLoginInfo() {
-        User user = userRepository.findOneWithAuthoritiesByUserName(SecurityUtils.getCurrentUserLogin().get());
+        User user = userRepository.findOneWithAuthoritiesByUserName(SecurityUtils.getCurrentUserNameLogin().get());
         if (user == null) {
             return null;
         }
