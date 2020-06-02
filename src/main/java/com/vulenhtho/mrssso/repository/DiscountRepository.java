@@ -16,4 +16,7 @@ public interface DiscountRepository extends JpaRepository<Discount, Long> {
 
     @Query("SELECT d FROM Discount d WHERE d.startDate < ?1 AND d.endDate > ?1 AND d.isForProduct = false ")
     Set<Discount> getByInTimeDiscountAndForBill(Instant now);
+
+    @Query("SELECT d FROM Discount d WHERE d.startDate < ?1 AND d.endDate > ?1 AND d.isForProduct = true")
+    Set<Discount> getByInTimeDiscountAndForProduct(Instant now);
 }

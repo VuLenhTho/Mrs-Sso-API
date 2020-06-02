@@ -1,18 +1,13 @@
 package com.vulenhtho.mrssso.service.impl;
 
 import com.vulenhtho.mrssso.config.Constant;
-import com.vulenhtho.mrssso.dto.CategoryDTO;
-import com.vulenhtho.mrssso.dto.ProductColorSizeDTO;
-import com.vulenhtho.mrssso.dto.ProductDTO;
-import com.vulenhtho.mrssso.dto.WelcomeSlideDTO;
+import com.vulenhtho.mrssso.dto.*;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
 import com.vulenhtho.mrssso.dto.response.*;
 import com.vulenhtho.mrssso.entity.Discount;
 import com.vulenhtho.mrssso.entity.Product;
 import com.vulenhtho.mrssso.entity.ProductColorSize;
-import com.vulenhtho.mrssso.mapper.CategoryMapper;
-import com.vulenhtho.mrssso.mapper.ProductMapper;
-import com.vulenhtho.mrssso.mapper.WelcomeSlideMapper;
+import com.vulenhtho.mrssso.mapper.*;
 import com.vulenhtho.mrssso.repository.*;
 import com.vulenhtho.mrssso.service.ProductService;
 import com.vulenhtho.mrssso.specification.ProductSpecification;
@@ -21,13 +16,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,9 +31,13 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductColorSizeRepository productColorSizeRepository;
 
+    private final ProductColorSizeMapper productColorSizeMapper;
+
     private final ColorRepository colorRepository;
 
     private final DiscountRepository discountRepository;
+
+    private final DiscountMapper discountMapper;
 
     private final SizeRepository sizeRepository;
 
@@ -53,47 +49,61 @@ public class ProductServiceImpl implements ProductService {
 
     private final CategoryMapper categoryMapper;
 
+    private final ColorMapper colorMapper;
+
+    private final SizeMapper sizeMapper;
+
+    private final SubCategoryRepository subCategoryRepository;
+
+    private final SubCategoryMapper subCategoryMapper;
+
 
     @Autowired
-    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, ColorRepository colorRepository
+    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, ProductColorSizeMapper productColorSizeMapper, ColorRepository colorRepository
             , DiscountRepository discountRepository, SizeRepository sizeRepository, SubCategoryRepository subCategoryRepository
-            , ProductColorSizeRepository productColorSizeRepository, WelcomeSlideRepository welcomeSlideRepository
-            , WelcomeSlideMapper welcomeSlideMapper, CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
+            , ProductColorSizeRepository productColorSizeRepository, DiscountMapper discountMapper, WelcomeSlideRepository welcomeSlideRepository
+            , WelcomeSlideMapper welcomeSlideMapper, CategoryRepository categoryRepository, CategoryMapper categoryMapper, ColorMapper colorMapper, SizeMapper sizeMapper, SubCategoryRepository subCategoryRepository1, SubCategoryMapper subCategoryMapper) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
+        this.productColorSizeMapper = productColorSizeMapper;
         this.productColorSizeRepository = productColorSizeRepository;
         this.colorRepository = colorRepository;
         this.discountRepository = discountRepository;
         this.sizeRepository = sizeRepository;
+        this.discountMapper = discountMapper;
         this.welcomeSlideRepository = welcomeSlideRepository;
         this.welcomeSlideMapper = welcomeSlideMapper;
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
+        this.colorMapper = colorMapper;
+        this.sizeMapper = sizeMapper;
+        this.subCategoryRepository = subCategoryRepository1;
+        this.subCategoryMapper = subCategoryMapper;
     }
 
     @Override
-    public ProductDTO create(ProductDTO productDTO) {
+    public void create(ProductDTO productDTO) {
         Product newProduct = productMapper.toEntity(productDTO, new Product());
-        Product result = productRepository.save(newProduct);
+        productRepository.save(newProduct);
 
-        if (!CollectionUtils.isEmpty(productDTO.getProductColorSizeDTOS())){
-            List<ProductColorSize> productColorSizes = getByProductColorSizeDTOS(productDTO.getProductColorSizeDTOS(), result.getId());
-            productColorSizeRepository.saveAll(productColorSizes);
-        }
-        return productMapper.toDTO(result);
     }
 
     @Override
-    public ProductDTO update(ProductDTO productDTO) {
-        Product newProduct = productMapper.toEntity(productDTO, productRepository.getOne(productDTO.getId()));
-        Product result = productRepository.save(newProduct);
+    public void update(ProductDetailDTO productDetailDTO) {
+        ProductDTO productDTO = productDetailDTO.getProductDTO();
+        Product newProduct = productMapper.toEntity(productDTO, productRepository.findById(productDTO.getId()).get());
+        productRepository.save(newProduct);
 
-        if (!CollectionUtils.isEmpty(productDTO.getProductColorSizeDTOS())) {
-            productColorSizeRepository.deleteByProductId(result.getId());
-            List<ProductColorSize> productColorSizes = getByProductColorSizeDTOS(productDTO.getProductColorSizeDTOS(), result.getId());
-            productColorSizeRepository.saveAll(productColorSizes);
+        if (!StringUtils.isEmpty(productDetailDTO.getProductColorSizeIdsToDel())) {
+            List<Long> productColorSizeIdsToDel = Arrays.stream(productDetailDTO.getProductColorSizeIdsToDel().split(","))
+                    .filter(st -> !StringUtils.isEmpty(st))
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+            for (Long id : productColorSizeIdsToDel) {
+                productColorSizeRepository.deleteById(id);
+            }
         }
-        return productMapper.toDTO(result);
+
     }
 
     public List<ProductColorSize> getByProductColorSizeDTOS(Set<ProductColorSizeDTO> productColorSizeDTOS, Long productId) {
@@ -209,6 +219,35 @@ public class ProductServiceImpl implements ProductService {
         return new PageHeaderDTO(categoryDTOS, discounts);
     }
 
+    @Override
+    public ProductDetailDTO getProductDetailByAdmin(Long id) {
+        ProductDTO productDTO = productMapper.toDTO(productRepository.findById(id).get());
+        Set<ColorDTO> colorDTOS = colorMapper.toDTO(new HashSet<>(colorRepository.findAll()));
+        Set<SizeDTO> sizeDTOS = sizeMapper.toDTO(new HashSet<>(sizeRepository.findAll()));
+        Set<SubCategoryDTO> subCategoryDTOS = subCategoryMapper.toDTO(new HashSet<>(subCategoryRepository.findAll()));
 
+        return new ProductDetailDTO(productDTO, subCategoryDTOS, colorDTOS, sizeDTOS);
+    }
+
+    @Override
+    public InfoToCreateProductDTO getInfoToCreateProductDTO() {
+        Set<SubCategoryDTO> subCategoryDTOS = subCategoryMapper.toDTO(new HashSet<>(subCategoryRepository.findAll()));
+        Set<DiscountDTO> discountDTOS = discountMapper.toDTO(discountRepository.getByInTimeDiscountAndForProduct(Instant.now()));
+        return new InfoToCreateProductDTO(discountDTOS, subCategoryDTOS);
+    }
+
+    @Override
+    public void addProductColorSize(ProductColorSizeDTO productColorSizeDTO) {
+        ProductColorSize productColorSize = productColorSizeMapper.toEntity(productColorSizeDTO);
+
+        ProductColorSize checkExist = productColorSizeRepository.findByColorAndSizeAndProduct(productColorSize.getColor()
+                , productColorSize.getSize(), productColorSize.getProduct());
+        if (checkExist != null) {
+            checkExist.setQuantity(productColorSize.getQuantity());
+            productColorSizeRepository.save(checkExist);
+        } else {
+            productColorSizeRepository.save(productColorSize);
+        }
+    }
 
 }

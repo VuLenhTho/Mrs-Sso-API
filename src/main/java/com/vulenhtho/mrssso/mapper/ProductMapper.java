@@ -68,6 +68,7 @@ public class ProductMapper {
                 product.getColors().add(colorRepository.getOne(colorDTO.getId()));
             });
         }
+
         if (!CollectionUtils.isEmpty(productDTO.getDiscountDTOS())) {
             product.setDiscounts(new HashSet<>());
             productDTO.getDiscountDTOS().forEach(discountDTO -> {
@@ -167,7 +168,7 @@ public class ProductMapper {
         return itemResult;
     }
 
-    private Long countPriceInDiscount(Set<DiscountDTO> discountDTOS, Long currentPrice) {
+    public Long countPriceInDiscount(Set<DiscountDTO> discountDTOS, Long currentPrice) {
         Long finalPrice = currentPrice;
         for (DiscountDTO discountDTO : discountDTOS) {
             if (isInDiscountTimeAndForProduct(discountDTO)) {

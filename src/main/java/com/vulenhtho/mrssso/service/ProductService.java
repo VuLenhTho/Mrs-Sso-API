@@ -1,19 +1,20 @@
 package com.vulenhtho.mrssso.service;
 
+import com.vulenhtho.mrssso.dto.ProductColorSizeDTO;
 import com.vulenhtho.mrssso.dto.ProductDTO;
+import com.vulenhtho.mrssso.dto.ProductDetailDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
-import com.vulenhtho.mrssso.dto.response.ListProductPageResponse;
-import com.vulenhtho.mrssso.dto.response.PageHeaderDTO;
-import com.vulenhtho.mrssso.dto.response.ProductWebResponseDTO;
-import com.vulenhtho.mrssso.dto.response.WebHomeResponse;
+import com.vulenhtho.mrssso.dto.response.*;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface ProductService {
-    ProductDTO create(ProductDTO productDTO);
+    void create(ProductDTO productDTO);
 
-    ProductDTO update(ProductDTO productDTO);
+    void update(ProductDetailDTO productDetailDTO);
+
+    void addProductColorSize(ProductColorSizeDTO productColorSizeDTO);
 
     ProductWebResponseDTO findForWebById(Long id);
 
@@ -22,6 +23,10 @@ public interface ProductService {
     Page<ProductWebResponseDTO> getAllWithFilterForWeb(ProductFilterRequestDTO filterRequest);
 
     ProductDTO findById(Long id);
+
+    ProductDetailDTO getProductDetailByAdmin(Long id);
+
+    InfoToCreateProductDTO getInfoToCreateProductDTO();
 
     Page<ProductDTO> getAllWihFilter(ProductFilterRequestDTO filterRequest);
 

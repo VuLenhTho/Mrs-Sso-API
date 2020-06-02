@@ -4,6 +4,7 @@ import com.vulenhtho.mrssso.dto.BillDTO;
 import com.vulenhtho.mrssso.dto.DiscountDTO;
 import com.vulenhtho.mrssso.dto.ItemDTO;
 import com.vulenhtho.mrssso.dto.UpdateBillDTO;
+import com.vulenhtho.mrssso.dto.request.AddAnItemIntoBillDTO;
 import com.vulenhtho.mrssso.dto.request.BillFilterRequest;
 import com.vulenhtho.mrssso.dto.request.CartDTO;
 import com.vulenhtho.mrssso.dto.response.ItemShowInCartDTO;
@@ -23,14 +24,15 @@ import com.vulenhtho.mrssso.util.CommonUtils;
 import com.vulenhtho.mrssso.util.SecurityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,8 +60,11 @@ public class BillServiceImpl implements BillService {
 
     private final SecurityUtils securityUtils;
 
+    private final ProductColorSizeRepository productColorSizeRepository;
 
-    public BillServiceImpl(ProductRepository productRepository, DiscountMapper discountMapper, BillRepository billRepository, ItemRepository itemRepository, ProductMapper productMapper, ColorRepository colorRepository, DiscountRepository discountRepository, SizeRepository sizeRepository, ProductService productService, BillMapper billMapper, SecurityUtils securityUtils) {
+    public BillServiceImpl(ProductRepository productRepository, DiscountMapper discountMapper, BillRepository billRepository, ItemRepository itemRepository, ProductMapper productMapper
+            , ColorRepository colorRepository, DiscountRepository discountRepository, SizeRepository sizeRepository, ProductService productService, BillMapper billMapper, SecurityUtils securityUtils
+            , ProductColorSizeRepository productColorSizeRepository) {
         this.productRepository = productRepository;
         this.discountMapper = discountMapper;
         this.billRepository = billRepository;
@@ -71,6 +76,7 @@ public class BillServiceImpl implements BillService {
         this.productService = productService;
         this.billMapper = billMapper;
         this.securityUtils = securityUtils;
+        this.productColorSizeRepository = productColorSizeRepository;
     }
 
     @Override
@@ -126,6 +132,9 @@ public class BillServiceImpl implements BillService {
     public void delete(Long id) {
         Optional<Bill> bill = billRepository.findById(id);
         if (bill.isPresent()) {
+            if (!BillStatus.INIT.equals(bill.get().getStatus()) && !BillStatus.CHECKING.equals(bill.get().getStatus())) {
+                handleChangeStatusToBeforeCONFIRMED(bill.get().getItems());
+            }
             itemRepository.deleteAll(bill.get().getItems());
             billRepository.delete(bill.get());
         }
@@ -143,14 +152,33 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
+    @Transactional
     public void updateBillByAdmin(UpdateBillDTO updateBillDTO) {
         Bill currentBill = billRepository.findById(updateBillDTO.getBillDTO().getId()).get();
+        BillStatus oldStatus = currentBill.getStatus(); //status before set new data to bill
         setNewBillDataOnUpdate(currentBill, updateBillDTO);
+
+        if (checkChangeBillStatusToCONFIRMED(oldStatus, currentBill.getStatus())) {
+            handleChangeStatusToCONFIRMED(currentBill.getItems());
+        }
+        if (checkChangeBillStatusToBeforeCONFIRMED(oldStatus, currentBill.getStatus())) {
+            handleChangeStatusToBeforeCONFIRMED(currentBill.getItems());
+        }
         billRepository.save(currentBill);
     }
 
-    private Bill setNewBillDataOnUpdate(Bill billToUpdate, UpdateBillDTO updateBillDTO) {
+    private boolean checkChangeBillStatusToCONFIRMED(BillStatus oldStatus, BillStatus newStatus) {
+        return (BillStatus.INIT.equals(oldStatus) || BillStatus.CHECKING.equals(oldStatus)) && (!BillStatus.INIT.equals(newStatus) && !BillStatus.CHECKING.equals(newStatus));
+    }
+
+    private boolean checkChangeBillStatusToBeforeCONFIRMED(BillStatus oldStatus, BillStatus newStatus) {
+        return (!BillStatus.INIT.equals(oldStatus) && !BillStatus.CHECKING.equals(oldStatus)) && (BillStatus.INIT.equals(newStatus) || BillStatus.CHECKING.equals(newStatus));
+    }
+
+    private void setNewBillDataOnUpdate(Bill billToUpdate, UpdateBillDTO updateBillDTO) {
         BillDTO newBill = updateBillDTO.getBillDTO();
+        BillStatus oldStatus = billToUpdate.getStatus();
+
         billToUpdate.setAddress(newBill.getAddress());
         billToUpdate.setStatus(newBill.getStatus());
         billToUpdate.setReceiver(newBill.getReceiver());
@@ -159,14 +187,26 @@ public class BillServiceImpl implements BillService {
         billToUpdate.setPaymentInfo(newBill.getPaymentInfo());
         billToUpdate.setNote(newBill.getNote());
 
+        //Only change the quantity before CONFIRMED status
+        boolean isBeforeCONFIRMEDStatus = BillStatus.INIT.equals(oldStatus) || BillStatus.CHECKING.equals(oldStatus);
         if (updateBillDTO.getProductIdsToDel() != null) {
             List<Long> productIdsToDel = Arrays.stream(updateBillDTO.getProductIdsToDel().split(","))
                     .filter(st -> !StringUtils.isEmpty(st))
                     .map(Long::parseLong)
                     .collect(Collectors.toList());
-            productIdsToDel.forEach(idToDel -> {
-                billToUpdate.getItems().removeIf(item -> item.getProduct().getId().equals(idToDel));
-            });
+            List<Item> itemsToRemove = new ArrayList<>();
+            for (Long idToDel : productIdsToDel) {
+                for (Item item : billToUpdate.getItems()) {
+                    if (item.getProduct().getId().equals(idToDel)) {
+                        if (!isBeforeCONFIRMEDStatus) {
+                            handleChangeStatusToBeforeCONFIRMED(new HashSet<>(Collections.singleton(item)));
+                        }
+                        itemsToRemove.add(item);
+                    }
+                }
+            }
+            billToUpdate.getItems().removeAll(itemsToRemove);
+            itemRepository.deleteAll(itemsToRemove);
         }
 
         List<Long> quantityOfProducts = Arrays.stream(updateBillDTO.getQuantityOfProducts().split(","))
@@ -180,8 +220,12 @@ public class BillServiceImpl implements BillService {
 
         billToUpdate.getItems().forEach(item -> {
             for (int i = 0; i < productIds.size(); i++) {
-                if (item.getProduct().getId().equals(productIds.get(i))) {
-                    item.setQuantity(quantityOfProducts.get(i));
+                if (isSameProductAndCanChangeQuantity(item, productIds.get(i), quantityOfProducts.get(i))) {
+                    if (isBeforeCONFIRMEDStatus) {
+                        item.setQuantity(quantityOfProducts.get(i));
+                    } else {
+                        throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "CanNotChangeQuantityAfterCONFIRMEDStatus");
+                    }
                 }
             }
         });
@@ -190,7 +234,81 @@ public class BillServiceImpl implements BillService {
 
         billToUpdate.setFinalPayMoney(newFinalPayMoney);
         billToUpdate.setTotalImportMoney(newTotalImportPrice);
-        return billToUpdate;
+    }
+
+    private void handleChangeStatusToCONFIRMED(Set<Item> items) {
+        if (CollectionUtils.isEmpty(items)) {
+            return;
+        }
+        for (Item item : items) {
+            ProductColorSize productColorSize = productColorSizeRepository.findByColorAndSizeAndProduct(
+                    colorRepository.findByName(item.getColor()), sizeRepository.findByName(item.getSize()), item.getProduct());
+            Long newQuantity = productColorSize.getQuantity() - item.getQuantity();
+            productColorSize.setQuantity(newQuantity);
+
+            productColorSizeRepository.save(productColorSize);
+        }
+    }
+
+    private void handleChangeStatusToBeforeCONFIRMED(Set<Item> items) {
+        if (CollectionUtils.isEmpty(items)) {
+            return;
+        }
+        for (Item item : items) {
+            ProductColorSize productColorSize = productColorSizeRepository.findByColorAndSizeAndProduct(
+                    colorRepository.findByName(item.getColor()), sizeRepository.findByName(item.getSize()), item.getProduct());
+            Long newQuantity = productColorSize.getQuantity() + item.getQuantity();
+            productColorSize.setQuantity(newQuantity);
+
+            productColorSizeRepository.save(productColorSize);
+        }
+    }
+
+    private boolean isSameProductAndCanChangeQuantity(Item item, Long compareId, Long quantity) {
+        boolean isSameProduct = item.getProduct().getId().equals(compareId);
+        if (!isSameProduct || quantity.equals(item.getQuantity())) {
+            return false;
+        }
+        Product product = productRepository.findById(item.getProduct().getId()).get();
+        boolean isNotChangePrice = item.getPrice().equals(product.getPrice());
+        if (!isNotChangePrice) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "PriceHasChanged");
+        }
+        return true;
+    }
+
+    @Override
+    public void addItemIntoBill(AddAnItemIntoBillDTO addAnItemIntoBillDTO) {
+        Product product = productRepository.findByName(addAnItemIntoBillDTO.getProductInfo());
+        Color color = colorRepository.findByName(addAnItemIntoBillDTO.getColorInfo());
+        Size size = sizeRepository.findByName(addAnItemIntoBillDTO.getSizeInfo());
+        try {
+            if (product == null) {
+                product = productRepository.findById(Long.parseLong(addAnItemIntoBillDTO.getProductInfo())).get();
+            }
+            if (color == null) {
+                color = colorRepository.findById(Long.parseLong(addAnItemIntoBillDTO.getColorInfo())).get();
+            }
+            if (size == null) {
+                size = sizeRepository.findById(Long.parseLong(addAnItemIntoBillDTO.getSizeInfo())).get();
+            }
+        } catch (Exception e) {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "NotFound");
+        }
+        ProductColorSize productColorSize = productColorSizeRepository.findByColorAndSizeAndProduct(color, size, product);
+        if (productColorSize.getQuantity() < addAnItemIntoBillDTO.getQuantity()) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "NotEnoughProductQuantity");
+        }
+        Bill bill = billRepository.findById(addAnItemIntoBillDTO.getBillId()).get();
+        Long price = productMapper.countPriceInDiscount(discountMapper.toDTO(product.getDiscounts()), product.getPrice());
+        Item item = new Item(null, color.getName(), size.getName()
+                , price, product.getImportPrice(), addAnItemIntoBillDTO.getQuantity(), bill, product);
+        itemRepository.save(item);
+
+        boolean isBeforeCONFIRMEDStatus = BillStatus.INIT.equals(bill.getStatus()) || BillStatus.CHECKING.equals(bill.getStatus());
+        if (!isBeforeCONFIRMEDStatus) {
+            handleChangeStatusToCONFIRMED(new HashSet<>(Collections.singleton(item)));
+        }
     }
 
 }

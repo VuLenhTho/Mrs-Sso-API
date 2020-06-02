@@ -1,8 +1,11 @@
 package com.vulenhtho.mrssso.controller.admin;
 
+import com.vulenhtho.mrssso.dto.ProductColorSizeDTO;
 import com.vulenhtho.mrssso.dto.ProductDTO;
+import com.vulenhtho.mrssso.dto.ProductDetailDTO;
 import com.vulenhtho.mrssso.dto.request.IdsRequestDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
+import com.vulenhtho.mrssso.dto.response.InfoToCreateProductDTO;
 import com.vulenhtho.mrssso.entity.Product;
 import com.vulenhtho.mrssso.entity.enumeration.ProductStatus;
 import com.vulenhtho.mrssso.repository.ProductRepository;
@@ -27,37 +30,48 @@ public class ProductController {
     }
 
     @PostMapping("/product")
-    public ResponseEntity<?> create(@RequestBody ProductDTO productDTO){
-        if (productRepository.findByName(productDTO.getName()) != null){
+    public ResponseEntity<?> create(@RequestBody ProductDTO productDTO) {
+        if (productRepository.findByName(productDTO.getName()) != null) {
             return ResponseEntity.badRequest().body("Product Name has already existed");
         }
-        ProductDTO result = productService.create(productDTO);
-        if (result == null){
-            return ResponseEntity.badRequest().body("ERROR");
-        }
+        productService.create(productDTO);
+
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/product")
-    public ResponseEntity<?> update(@RequestBody ProductDTO productDTO){
-        Product productExits = productRepository.findByName(productDTO.getName());
-        if (productExits != null && !productExits.getId().equals(productDTO.getId())){
+    public ResponseEntity<?> update(@RequestBody ProductDetailDTO productDetailDTO) {
+        Product productExits = productRepository.findByName(productDetailDTO.getProductDTO().getName());
+        if (productExits != null && !productExits.getId().equals(productDetailDTO.getProductDTO().getId())) {
             return ResponseEntity.badRequest().body("Product Name has already existed");
         }
-        ProductDTO result = productService.update(productDTO);
-        if (result == null){
-            return ResponseEntity.badRequest().body("ERROR");
-        }
+        productService.update(productDetailDTO);
+
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/product/addProductColorSize")
+    public ResponseEntity<?> addProductColorSize(@RequestBody ProductColorSizeDTO productColorSizeDTO) {
+        try {
+            productService.addProductColorSize(productColorSizeDTO);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @GetMapping("/product/{id}")
-    public ResponseEntity<?> getProduct(@PathVariable Long id){
-        ProductDTO productDTO = productService.findById(id);
-        if (productDTO != null){
+    public ResponseEntity<?> getProduct(@PathVariable Long id) {
+        ProductDetailDTO productDTO = productService.getProductDetailByAdmin(id);
+        if (productDTO != null) {
             return ResponseEntity.ok(productDTO);
         }
         return ResponseEntity.badRequest().body("Not found product with id: " + id);
+    }
+
+    @GetMapping("/product/infoToCreate")
+    public ResponseEntity<InfoToCreateProductDTO> getInfoToCreateProduct() {
+        return ResponseEntity.ok(productService.getInfoToCreateProductDTO());
     }
 
     @GetMapping("/products")
@@ -66,7 +80,7 @@ public class ProductController {
             , @RequestParam(required = false, defaultValue = "5") Integer size, @RequestParam(required = false) String sort
             , @RequestParam(required = false) String search, @RequestParam(required = false) Long categoryId
             , @RequestParam(required = false) Boolean trend, @RequestParam(required = false) String discountId
-            , @RequestParam(required = false) ProductStatus status, @RequestParam(required = false) Boolean hot){
+            , @RequestParam(required = false) ProductStatus status, @RequestParam(required = false) Boolean hot) {
 
         ProductFilterRequestDTO filterRequestDTO = new ProductFilterRequestDTO(sort, status, search, categoryId, hot, trend, discountId, page, size);
         Page<ProductDTO> productDTOS = productService.getAllWihFilter(filterRequestDTO);

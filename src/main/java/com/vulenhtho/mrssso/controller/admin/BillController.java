@@ -2,6 +2,7 @@ package com.vulenhtho.mrssso.controller.admin;
 
 import com.vulenhtho.mrssso.dto.BillDTO;
 import com.vulenhtho.mrssso.dto.UpdateBillDTO;
+import com.vulenhtho.mrssso.dto.request.AddAnItemIntoBillDTO;
 import com.vulenhtho.mrssso.dto.request.BillFilterRequest;
 import com.vulenhtho.mrssso.dto.response.PageBillsResponse;
 import com.vulenhtho.mrssso.dto.response.ShortInfoBillResponse;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 
@@ -76,8 +78,23 @@ public class BillController {
     }
 
     @PutMapping("/bill")
-    public void updateBill(@RequestBody UpdateBillDTO updateBillDTO) {
-        billService.updateBillByAdmin(updateBillDTO);
+    public ResponseEntity<?> updateBill(@RequestBody UpdateBillDTO updateBillDTO) {
+        try {
+            billService.updateBillByAdmin(updateBillDTO);
+        } catch (HttpClientErrorException e) {
+            return new ResponseEntity<>(e.getStatusText(), e.getStatusCode());
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/bill/addItem")
+    public ResponseEntity<?> addItemToBill(@RequestBody AddAnItemIntoBillDTO addAnItemIntoBillDTO) {
+        try {
+            billService.addItemIntoBill(addAnItemIntoBillDTO);
+        } catch (HttpClientErrorException e) {
+            return new ResponseEntity<>(e.getStatusText(), e.getStatusCode());
+        }
+        return ResponseEntity.ok().build();
     }
 
 }

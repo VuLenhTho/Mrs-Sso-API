@@ -3,6 +3,7 @@ package com.vulenhtho.mrssso.service;
 import com.vulenhtho.mrssso.dto.BillDTO;
 import com.vulenhtho.mrssso.dto.ItemDTO;
 import com.vulenhtho.mrssso.dto.UpdateBillDTO;
+import com.vulenhtho.mrssso.dto.request.AddAnItemIntoBillDTO;
 import com.vulenhtho.mrssso.dto.request.BillFilterRequest;
 import com.vulenhtho.mrssso.dto.request.CartDTO;
 import com.vulenhtho.mrssso.dto.response.ItemsForCartAndHeader;
@@ -28,5 +29,5 @@ public interface BillService {
 
     void updateBillByAdmin(UpdateBillDTO updateBillDTO);
 
-
+    void addItemIntoBill(AddAnItemIntoBillDTO addAnItemIntoBillDTO);
 }
