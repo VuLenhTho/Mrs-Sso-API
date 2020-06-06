@@ -68,9 +68,8 @@ public class ProductMapper {
                 product.getColors().add(colorRepository.getOne(colorDTO.getId()));
             });
         }
-
+        product.setDiscounts(new HashSet<>());
         if (!CollectionUtils.isEmpty(productDTO.getDiscountDTOS())) {
-            product.setDiscounts(new HashSet<>());
             productDTO.getDiscountDTOS().forEach(discountDTO -> {
                 product.getDiscounts().add(discountRepository.getOne(discountDTO.getId()));
             });

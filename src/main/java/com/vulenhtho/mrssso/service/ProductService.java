@@ -5,12 +5,13 @@ import com.vulenhtho.mrssso.dto.ProductDTO;
 import com.vulenhtho.mrssso.dto.ProductDetailDTO;
 import com.vulenhtho.mrssso.dto.request.ProductFilterRequestDTO;
 import com.vulenhtho.mrssso.dto.response.*;
+import com.vulenhtho.mrssso.entity.Product;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface ProductService {
-    void create(ProductDTO productDTO);
+    Product create(ProductDTO productDTO);
 
     void update(ProductDetailDTO productDetailDTO);
 
@@ -37,5 +38,6 @@ public interface ProductService {
     WebHomeResponse getDataForWebHomePage();
 
     PageHeaderDTO getHeaderResponse();
+
 
 }

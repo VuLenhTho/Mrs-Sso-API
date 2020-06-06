@@ -53,9 +53,7 @@ public class UserServiceImpl implements UserService {
         newUser.setActivationKey(RandomUtil.generateActivationKey());
 
         Set<Role> roles = new HashSet<>();
-        userDTO.getRoles().forEach(roleName -> {
-            roleRepository.findByName(roleName.getName()).ifPresent(roles::add);
-        });
+        roles.add(roleRepository.findByName("ROLE_USER").get());
         newUser.setRoles(roles);
         return userRepository.save(newUser);
     }

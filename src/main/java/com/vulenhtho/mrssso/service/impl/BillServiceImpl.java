@@ -1,9 +1,6 @@
 package com.vulenhtho.mrssso.service.impl;
 
-import com.vulenhtho.mrssso.dto.BillDTO;
-import com.vulenhtho.mrssso.dto.DiscountDTO;
-import com.vulenhtho.mrssso.dto.ItemDTO;
-import com.vulenhtho.mrssso.dto.UpdateBillDTO;
+import com.vulenhtho.mrssso.dto.*;
 import com.vulenhtho.mrssso.dto.request.AddAnItemIntoBillDTO;
 import com.vulenhtho.mrssso.dto.request.BillFilterRequest;
 import com.vulenhtho.mrssso.dto.request.CartDTO;
@@ -311,4 +308,61 @@ public class BillServiceImpl implements BillService {
         }
     }
 
+    @Override
+    public ReportByMonthAndYearDTO getReportByMonthAndYear(Integer month, Integer year) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.MONTH, month - 1);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        Instant fistDayOfMonth = calendar.toInstant();
+        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DATE));
+        Instant lastDayOfMonth = calendar.toInstant();
+
+        List<Bill> bills = billRepository.getByLastModifiedDateAndStatus(fistDayOfMonth, lastDayOfMonth, BillStatus.FINISH);
+
+        Long totalImportMoney = bills.stream().mapToLong(Bill::getTotalImportMoney).sum();
+        Long totalMoneyFromSale = bills.stream().mapToLong(Bill::getFinalPayMoney).sum();
+        Long interestMoney = totalMoneyFromSale - totalImportMoney;
+
+        List<ProductInfoToReportDTO> productHasSale = new ArrayList<>();
+        for (Bill bill : bills) {
+            getProductInfoByBill(bill, productHasSale);
+        }
+
+        ReportByMonthAndYearDTO result = new ReportByMonthAndYearDTO(year, month, totalImportMoney, interestMoney, totalMoneyFromSale);
+        if (productHasSale.size() < 1) {
+            return result;
+        }
+        productHasSale.sort((o1, o2) -> o2.getQuantity().compareTo(o1.getQuantity()));
+
+        for (int i = 0; i < productHasSale.size(); i++) {
+            if (result.getBestsellerProduct().size() < 10) {
+                result.getBestsellerProduct().add(productHasSale.get(i));
+            }
+        }
+
+        for (int i = productHasSale.size(); i > -1; i--) {
+            if (result.getBadSellerProduct().size() < 10) {
+                result.getBadSellerProduct().add(productHasSale.get(i - 1));
+            }
+        }
+
+        return result;
+    }
+
+    private void getProductInfoByBill(Bill bill, List<ProductInfoToReportDTO> productHasSale) {
+        bill.getItems().forEach(item -> {
+            Optional<ProductInfoToReportDTO> hasExisting = productHasSale.stream().filter(product -> product.getId().equals(item.getProduct().getId())).findFirst();
+            if (hasExisting.isPresent()) {
+                int index = productHasSale.indexOf(hasExisting.get());
+                hasExisting.get().setQuantity(hasExisting.get().getQuantity() + item.getQuantity());
+                productHasSale.set(index, hasExisting.get());
+            } else {
+                Product product = item.getProduct();
+                ProductInfoToReportDTO newProductInfo = new ProductInfoToReportDTO(product.getId(), product.getName(), product.getThumbnail(), item.getQuantity());
+                productHasSale.add(newProductInfo);
+            }
+        });
+
+    }
 }

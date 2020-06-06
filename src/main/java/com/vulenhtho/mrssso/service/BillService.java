@@ -2,6 +2,7 @@ package com.vulenhtho.mrssso.service;
 
 import com.vulenhtho.mrssso.dto.BillDTO;
 import com.vulenhtho.mrssso.dto.ItemDTO;
+import com.vulenhtho.mrssso.dto.ReportByMonthAndYearDTO;
 import com.vulenhtho.mrssso.dto.UpdateBillDTO;
 import com.vulenhtho.mrssso.dto.request.AddAnItemIntoBillDTO;
 import com.vulenhtho.mrssso.dto.request.BillFilterRequest;
@@ -30,4 +31,7 @@ public interface BillService {
     void updateBillByAdmin(UpdateBillDTO updateBillDTO);
 
     void addItemIntoBill(AddAnItemIntoBillDTO addAnItemIntoBillDTO);
+
+    ReportByMonthAndYearDTO getReportByMonthAndYear(Integer month, Integer year);
+
 }

@@ -58,6 +58,7 @@ public class ProductServiceImpl implements ProductService {
     private final SubCategoryMapper subCategoryMapper;
 
 
+
     @Autowired
     public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, ProductColorSizeMapper productColorSizeMapper, ColorRepository colorRepository
             , DiscountRepository discountRepository, SizeRepository sizeRepository, SubCategoryRepository subCategoryRepository
@@ -82,10 +83,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void create(ProductDTO productDTO) {
+    public Product create(ProductDTO productDTO) {
         Product newProduct = productMapper.toEntity(productDTO, new Product());
-        productRepository.save(newProduct);
-
+        return productRepository.save(newProduct);
     }
 
     @Override
@@ -104,20 +104,6 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
-    }
-
-    public List<ProductColorSize> getByProductColorSizeDTOS(Set<ProductColorSizeDTO> productColorSizeDTOS, Long productId) {
-        List<ProductColorSize> productColorSizes = new ArrayList<>();
-        productColorSizeDTOS.forEach(data -> {
-            ProductColorSize productColorSize = new ProductColorSize();
-            productColorSize.setColor(colorRepository.getOne(data.getColorId()));
-            productColorSize.setProduct(productRepository.getOne(productId));
-            productColorSize.setSize(sizeRepository.getOne(data.getSizeId()));
-            productColorSize.setQuantity(data.getQuantity());
-
-            productColorSizes.add(productColorSize);
-        });
-        return productColorSizes;
     }
 
     @Override
@@ -188,7 +174,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public boolean delete(Long id) {
         try {
+            productColorSizeRepository.deleteByProductId(id);
             productRepository.deleteById(id);
+
             return true;
         } catch (Exception e) {
             return false;
@@ -219,14 +207,16 @@ public class ProductServiceImpl implements ProductService {
         return new PageHeaderDTO(categoryDTOS, discounts);
     }
 
+
     @Override
     public ProductDetailDTO getProductDetailByAdmin(Long id) {
         ProductDTO productDTO = productMapper.toDTO(productRepository.findById(id).get());
         Set<ColorDTO> colorDTOS = colorMapper.toDTO(new HashSet<>(colorRepository.findAll()));
         Set<SizeDTO> sizeDTOS = sizeMapper.toDTO(new HashSet<>(sizeRepository.findAll()));
         Set<SubCategoryDTO> subCategoryDTOS = subCategoryMapper.toDTO(new HashSet<>(subCategoryRepository.findAll()));
+        Set<DiscountDTO> discountDTOS = discountMapper.toDTO(discountRepository.getByInTimeDiscountAndForProduct(Instant.now()));
 
-        return new ProductDetailDTO(productDTO, subCategoryDTOS, colorDTOS, sizeDTOS);
+        return new ProductDetailDTO(productDTO, subCategoryDTOS, colorDTOS, sizeDTOS, discountDTOS);
     }
 
     @Override
@@ -249,5 +239,6 @@ public class ProductServiceImpl implements ProductService {
             productColorSizeRepository.save(productColorSize);
         }
     }
+
 
 }

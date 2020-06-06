@@ -1,6 +1,7 @@
 package com.vulenhtho.mrssso.controller.admin;
 
 import com.vulenhtho.mrssso.dto.BillDTO;
+import com.vulenhtho.mrssso.dto.ReportByMonthAndYearDTO;
 import com.vulenhtho.mrssso.dto.UpdateBillDTO;
 import com.vulenhtho.mrssso.dto.request.AddAnItemIntoBillDTO;
 import com.vulenhtho.mrssso.dto.request.BillFilterRequest;
@@ -95,6 +96,11 @@ public class BillController {
             return new ResponseEntity<>(e.getStatusText(), e.getStatusCode());
         }
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/bill/reportByMonthAndYear")
+    public ResponseEntity<ReportByMonthAndYearDTO> getReportByMonthAndYear(@RequestParam Integer month, @RequestParam Integer year) {
+        return ResponseEntity.ok(billService.getReportByMonthAndYear(month, year));
     }
 
 }

@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
 public class ProductController {
-    private ProductService productService;
-    private ProductRepository productRepository;
+    private final ProductService productService;
+    private final ProductRepository productRepository;
 
     @Autowired
     public ProductController(ProductService productService, ProductRepository productRepository) {
@@ -34,9 +34,9 @@ public class ProductController {
         if (productRepository.findByName(productDTO.getName()) != null) {
             return ResponseEntity.badRequest().body("Product Name has already existed");
         }
-        productService.create(productDTO);
+        Product product = productService.create(productDTO);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(product.getId());
     }
 
     @PutMapping("/product")
@@ -96,10 +96,10 @@ public class ProductController {
     }
 
     @DeleteMapping("/products")
-    public ResponseEntity<?> delete(@RequestBody IdsRequestDTO ids){
-        if (productService.delete(ids.getIds())){
+    public ResponseEntity<?> delete(@RequestBody IdsRequestDTO idsRequestDTO) {
+        if (productService.delete(idsRequestDTO.getIds())) {
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.badRequest().body("not found product with ids:" + ids.getIds().toString());
+        return ResponseEntity.badRequest().body("not found product with ids:" + idsRequestDTO.getIds().toString());
     }
 }

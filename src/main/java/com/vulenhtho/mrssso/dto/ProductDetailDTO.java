@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Setter
@@ -15,7 +16,7 @@ public class ProductDetailDTO {
 
     private ProductDTO productDTO;
 
-    private Set<SubCategoryDTO> subCategoryDTOS;
+    private Set<SubCategoryDTO> subCategoryDTOS = new HashSet<>();
 
     private Set<ColorDTO> colorDTOS;
 
@@ -23,10 +24,13 @@ public class ProductDetailDTO {
 
     private String productColorSizeIdsToDel;
 
-    public ProductDetailDTO(ProductDTO productDTO, Set<SubCategoryDTO> subCategoryDTOS, Set<ColorDTO> colorDTOS, Set<SizeDTO> sizeDTOS) {
+    private Set<DiscountDTO> discountDTOS = new HashSet<>();
+
+    public ProductDetailDTO(ProductDTO productDTO, Set<SubCategoryDTO> subCategoryDTOS, Set<ColorDTO> colorDTOS, Set<SizeDTO> sizeDTOS, Set<DiscountDTO> discountDTOS) {
         this.productDTO = productDTO;
         this.subCategoryDTOS = subCategoryDTOS;
         this.colorDTOS = colorDTOS;
         this.sizeDTOS = sizeDTOS;
+        this.discountDTOS = discountDTOS;
     }
 }
