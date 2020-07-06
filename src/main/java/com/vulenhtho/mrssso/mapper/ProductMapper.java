@@ -174,9 +174,9 @@ public class ProductMapper {
                 if (discountDTO.getAmount() != null) {
                     finalPrice -= discountDTO.getAmount();
                 }
-//                if (discountDTO.getPercent() != null) {
-//                    finalPrice -= (currentPrice * discountDTO.getPercent() / 100);
-//                }
+                if (discountDTO.getPercent() != null) {
+                    finalPrice -= (currentPrice * discountDTO.getPercent() / 100);
+                }
             }
 
         }

@@ -6,25 +6,30 @@ import com.vulenhtho.mrssso.repository.ColorRepository;
 import com.vulenhtho.mrssso.util.BeanUtils;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 public class ColorMapper {
-
-    private ColorRepository colorRepository;
+    private final ColorRepository colorRepository;
 
     public ColorMapper(ColorRepository colorRepository) {
         this.colorRepository = colorRepository;
     }
 
-    public ColorDTO toDTO(Color color){
+    @PreDestroy
+    public void postConstruct() {
+        System.out.println("Đối lượng colorMapper trước khi bị xóa sẽ chạy hàm này");
+    }
+
+    public ColorDTO toDTO(Color color) {
         ColorDTO colorDTO = new ColorDTO();
         BeanUtils.refine(color, colorDTO, BeanUtils::copyNonNull);
         return colorDTO;
     }
 
-    public Set<ColorDTO> toDTO(Set<Color> colors){
+    public Set<ColorDTO> toDTO(Set<Color> colors) {
         return colors.stream().map(this::toDTO).collect(Collectors.toSet());
     }
 

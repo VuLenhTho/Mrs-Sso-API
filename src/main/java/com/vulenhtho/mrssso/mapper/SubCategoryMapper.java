@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class SubCategoryMapper {
-    private SubCategoryRepository subCategoryRepository;
+    private final SubCategoryRepository subCategoryRepository;
 
     public SubCategoryMapper(SubCategoryRepository subCategoryRepository) {
         this.subCategoryRepository = subCategoryRepository;

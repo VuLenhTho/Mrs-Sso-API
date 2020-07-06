@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class UserMapper {
-    private RoleRepository roleRepository;
-    private RoleMapper roleMapper;
+    private final RoleRepository roleRepository;
+    private final RoleMapper roleMapper;
 
     public UserMapper(RoleRepository roleRepository, RoleMapper roleMapper) {
         this.roleRepository = roleRepository;
@@ -21,8 +21,8 @@ public class UserMapper {
     }
 
 
-    public UserDTO toDTO(User user){
-         if (user == null) return null;
+    public UserDTO toDTO(User user) {
+        if (user == null) return null;
         UserDTO userDTO = new UserDTO();
         BeanUtils.refine(user, userDTO, BeanUtils::copyNonNull);
         if (user.getRoles() != null && !user.getRoles().isEmpty()){

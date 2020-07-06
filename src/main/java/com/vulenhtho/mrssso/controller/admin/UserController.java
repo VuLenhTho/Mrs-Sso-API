@@ -5,6 +5,7 @@ import com.vulenhtho.mrssso.dto.request.UserFilterRequestDTO;
 import com.vulenhtho.mrssso.dto.response.PageUserResponse;
 import com.vulenhtho.mrssso.mapper.UserMapper;
 import com.vulenhtho.mrssso.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +18,12 @@ import java.util.List;
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
 public class UserController {
+
     private final UserService userService;
+
     private final UserMapper userMapper;
 
+    @Autowired
     public UserController(UserService userService, UserMapper userMapper) {
         this.userService = userService;
         this.userMapper = userMapper;

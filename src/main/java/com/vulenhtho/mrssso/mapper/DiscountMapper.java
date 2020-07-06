@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Component
 public class DiscountMapper {
 
-    private DiscountRepository discountRepository;
+    private final DiscountRepository discountRepository;
 
     public DiscountMapper(DiscountRepository discountRepository) {
         this.discountRepository = discountRepository;

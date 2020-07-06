@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 
 @Component
 public class CategoryMapper {
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
-    private SubCategoryMapper subCategoryMapper;
+    private final SubCategoryMapper subCategoryMapper;
 
     public CategoryMapper(CategoryRepository categoryRepository, SubCategoryMapper subCategoryMapper) {
         this.categoryRepository = categoryRepository;

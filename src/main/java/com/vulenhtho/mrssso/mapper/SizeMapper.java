@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Component
 public class SizeMapper {
 
-    private SizeRepository sizeRepository;
+    private final SizeRepository sizeRepository;
 
     public SizeMapper(SizeRepository sizeRepository) {
         this.sizeRepository = sizeRepository;

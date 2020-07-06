@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Component
 public class BillMapper {
 
-    private ItemMapper itemMapper;
+    private final ItemMapper itemMapper;
 
     public BillMapper(ItemMapper itemMapper) {
         this.itemMapper = itemMapper;

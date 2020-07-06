@@ -6,7 +6,6 @@ import com.vulenhtho.mrssso.entity.User;
 import com.vulenhtho.mrssso.repository.UserRepository;
 import com.vulenhtho.mrssso.service.UserService;
 import com.vulenhtho.mrssso.service.impl.MailServiceImpl;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,10 +25,14 @@ public class AccountController {
     }
 
     @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void registerAccount(@RequestBody UserDTO userDTO) {
-        User user = userService.registerUser(userDTO);
-        mailService.sendActivationEmail(userDTO, user.getActivationKey());
+    public ResponseEntity<?> registerAccount(@RequestBody UserDTO userDTO) {
+        try {
+            User user = userService.registerUser(userDTO);
+//            mailService.sendActivationEmail(userDTO, user.getActivationKey());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/activate")

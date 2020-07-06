@@ -92,7 +92,7 @@ public class BillServiceImpl implements BillService {
 
         BeanUtils.refine(cartDTO, billToSave, BeanUtils::copyNonNull);
         if (cartDTO.getAccountNumber() != null && cartDTO.getAccountName() != null) {
-            billToSave.setPaymentInfo(cartDTO.getAccountName() + "," + cartDTO.getAccountNumber());
+            billToSave.setPaymentInfo(cartDTO.getAccountName() + "," + cartDTO.getAccountNumber() + "," + cartDTO.getTradingCode());
         }
         billToSave.setStatus(BillStatus.INIT);
         billToSave.setUser(securityUtils.getCurrentUserLogin());
@@ -335,13 +335,13 @@ public class BillServiceImpl implements BillService {
         }
         productHasSale.sort((o1, o2) -> o2.getQuantity().compareTo(o1.getQuantity()));
 
-        for (int i = 0; i < productHasSale.size(); i++) {
+        for (ProductInfoToReportDTO productInfoToReportDTO : productHasSale) {
             if (result.getBestsellerProduct().size() < 10) {
-                result.getBestsellerProduct().add(productHasSale.get(i));
+                result.getBestsellerProduct().add(productInfoToReportDTO);
             }
         }
 
-        for (int i = productHasSale.size(); i > -1; i--) {
+        for (int i = productHasSale.size(); i > 0; i--) {
             if (result.getBadSellerProduct().size() < 10) {
                 result.getBadSellerProduct().add(productHasSale.get(i - 1));
             }

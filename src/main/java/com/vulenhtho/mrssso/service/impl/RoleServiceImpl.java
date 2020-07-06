@@ -13,9 +13,9 @@ import java.util.Set;
 @Service
 public class RoleServiceImpl implements RoleService {
 
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    private RoleMapper roleMapper;
+    private final RoleMapper roleMapper;
 
     @Autowired
     public RoleServiceImpl(RoleRepository roleRepository, RoleMapper roleMapper) {
