@@ -309,7 +309,7 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public ReportByMonthAndYearDTO getReportByMonthAndYear(Integer month, Integer year) {
+    public ReportDTO getReportByMonthAndYear(Integer month, Integer year) {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, month - 1);
@@ -320,6 +320,44 @@ public class BillServiceImpl implements BillService {
 
         List<Bill> bills = billRepository.getByLastModifiedDateAndStatus(fistDayOfMonth, lastDayOfMonth, BillStatus.FINISH);
 
+        return getReportByBillList(bills, month, year);
+    }
+
+
+    private void getProductInfoByBill(Bill bill, List<ProductInfoToReportDTO> productHasSale) {
+        bill.getItems().forEach(item -> {
+            Optional<ProductInfoToReportDTO> hasExisting = productHasSale.stream().filter(product -> product.getId().equals(item.getProduct().getId())).findFirst();
+            if (hasExisting.isPresent()) {
+                int index = productHasSale.indexOf(hasExisting.get());
+                hasExisting.get().setQuantity(hasExisting.get().getQuantity() + item.getQuantity());
+                productHasSale.set(index, hasExisting.get());
+            } else {
+                Product product = item.getProduct();
+                ProductInfoToReportDTO newProductInfo = new ProductInfoToReportDTO(product.getId(), product.getName(), product.getThumbnail(), item.getQuantity());
+                productHasSale.add(newProductInfo);
+            }
+        });
+
+    }
+
+
+    @Override
+    public ReportDTO getReportByYear(Integer year) {
+        Calendar firstDayOfYear = Calendar.getInstance();
+        firstDayOfYear.set(Calendar.YEAR, year);
+        firstDayOfYear.set(Calendar.DAY_OF_YEAR, 1);
+
+        Calendar lastDayOfYear = Calendar.getInstance();
+        lastDayOfYear.set(Calendar.YEAR, year);
+        lastDayOfYear.set(Calendar.MONTH, 11); // 11 = december
+        lastDayOfYear.set(Calendar.DAY_OF_MONTH, 31);
+
+        List<Bill> bills = billRepository.getByLastModifiedDateAndStatus(firstDayOfYear.toInstant(), lastDayOfYear.toInstant(), BillStatus.FINISH);
+
+        return getReportByBillList(bills, null, year);
+    }
+
+    private ReportDTO getReportByBillList(List<Bill> bills, Integer month, Integer year) {
         Long totalImportMoney = bills.stream().mapToLong(Bill::getTotalImportMoney).sum();
         Long totalMoneyFromSale = bills.stream().mapToLong(Bill::getFinalPayMoney).sum();
         Long interestMoney = totalMoneyFromSale - totalImportMoney;
@@ -329,7 +367,7 @@ public class BillServiceImpl implements BillService {
             getProductInfoByBill(bill, productHasSale);
         }
 
-        ReportByMonthAndYearDTO result = new ReportByMonthAndYearDTO(year, month, totalImportMoney, interestMoney, totalMoneyFromSale);
+        ReportDTO result = new ReportDTO(year, month, totalImportMoney, interestMoney, totalMoneyFromSale);
         if (productHasSale.size() < 1) {
             return result;
         }
@@ -348,21 +386,5 @@ public class BillServiceImpl implements BillService {
         }
 
         return result;
-    }
-
-    private void getProductInfoByBill(Bill bill, List<ProductInfoToReportDTO> productHasSale) {
-        bill.getItems().forEach(item -> {
-            Optional<ProductInfoToReportDTO> hasExisting = productHasSale.stream().filter(product -> product.getId().equals(item.getProduct().getId())).findFirst();
-            if (hasExisting.isPresent()) {
-                int index = productHasSale.indexOf(hasExisting.get());
-                hasExisting.get().setQuantity(hasExisting.get().getQuantity() + item.getQuantity());
-                productHasSale.set(index, hasExisting.get());
-            } else {
-                Product product = item.getProduct();
-                ProductInfoToReportDTO newProductInfo = new ProductInfoToReportDTO(product.getId(), product.getName(), product.getThumbnail(), item.getQuantity());
-                productHasSale.add(newProductInfo);
-            }
-        });
-
     }
 }

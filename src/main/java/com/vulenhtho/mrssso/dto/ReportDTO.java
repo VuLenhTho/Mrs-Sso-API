@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReportByMonthAndYearDTO {
+public class ReportDTO {
 
     private Integer year;
 
@@ -28,7 +28,7 @@ public class ReportByMonthAndYearDTO {
 
     private List<ProductInfoToReportDTO> badSellerProduct = new ArrayList<>();
 
-    public ReportByMonthAndYearDTO(Integer year, Integer month, Long importMoney, Long interestMoney, Long moneyFromSale) {
+    public ReportDTO(Integer year, Integer month, Long importMoney, Long interestMoney, Long moneyFromSale) {
         this.year = year;
         this.month = month;
         this.importMoney = importMoney;
